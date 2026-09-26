@@ -4,6 +4,7 @@ import '../models/class_model.dart';
 import '../models/student_model.dart';
 import '../models/subject_model.dart';
 import '../providers/dummy_data_provider.dart';
+import '../../core/utils/date_formatter.dart';
 import 'api_service.dart';
 import 'auth_service.dart';
 
@@ -30,19 +31,31 @@ class ScheduleService {
   }
 
   Future<List<ScheduleModel>> getTodaySchedules({int? guruId}) async {
+    final currentUser = AuthService().currentUser;
+    final targetGuruId = guruId ?? (currentUser != null && !currentUser.isAdmin ? currentUser.id : null);
+
     final Map<String, dynamic> params = {};
-    if (guruId != null) params['guru_id'] = guruId;
+    if (targetGuruId != null) params['guru_id'] = targetGuruId;
+
+    final todayDay = DateFormatter.getTodayDayName();
 
     final res = await _api.safeGet('/jadwal/hari-ini', queryParameters: params);
     if (res != null && res.statusCode == 200 && res.data['success'] == true) {
       final List data = res.data['data'];
-      return data.map((e) => ScheduleModel.fromJson(e)).toList();
+      var result = data.map((e) => ScheduleModel.fromJson(e)).toList();
+      result = result.where((s) => s.hari.toLowerCase() == todayDay.toLowerCase()).toList();
+      if (targetGuruId != null) {
+        result = result.where((s) => s.guruId == targetGuruId).toList();
+      }
+      return result;
     }
 
-    // Default to today's schedules from dummy (e.g. Senin/Rabu)
-    var list = DummyDataProvider.dummySchedules.where((s) => s.hari == 'Rabu' || s.hari == 'Senin').toList();
-    if (guruId != null) {
-      list = list.where((s) => s.guruId == guruId).toList();
+    // Default to today's schedules strictly for today's day and target account
+    var list = DummyDataProvider.dummySchedules
+        .where((s) => s.hari.toLowerCase() == todayDay.toLowerCase())
+        .toList();
+    if (targetGuruId != null) {
+      list = list.where((s) => s.guruId == targetGuruId).toList();
     }
     return list;
   }

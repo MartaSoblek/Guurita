@@ -41,14 +41,16 @@ class SubjectView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Column(
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isNarrow = constraints.maxWidth < 600;
+                      final headerText = Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 4,
                             children: [
                               const Text(
                                 'Mata Pelajaran',
@@ -58,8 +60,7 @@ class SubjectView extends StatelessWidget {
                                   color: AppColors.textMain,
                                 ),
                               ),
-                              if (controller.isAdmin.value) ...[
-                                const SizedBox(width: 8),
+                              if (controller.isAdmin.value)
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
@@ -76,7 +77,6 @@ class SubjectView extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-                              ],
                             ],
                           ),
                           const SizedBox(height: 4),
@@ -88,20 +88,56 @@ class SubjectView extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ),
-                      if (controller.isAdmin.value)
-                        ElevatedButton.icon(
-                          onPressed: () => _showSubjectFormDialog(context, controller),
-                          icon: const Icon(Icons.add, size: 18),
-                          label: const Text('Tambah Mapel'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                        ),
-                    ],
+                      );
+
+                      if (isNarrow) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            headerText,
+                            if (controller.isAdmin.value) ...[
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _showSubjectFormDialog(context, controller),
+                                  icon: const Icon(Icons.add, size: 18),
+                                  label: const Text('Tambah Mapel'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(child: headerText),
+                          if (controller.isAdmin.value) ...[
+                            const SizedBox(width: 16),
+                            ElevatedButton.icon(
+                              onPressed: () => _showSubjectFormDialog(context, controller),
+                              icon: const Icon(Icons.add, size: 18),
+                              label: const Text('Tambah Mapel'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
 
@@ -180,9 +216,11 @@ class SubjectView extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: double.infinity),
-            child: DataTable(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 600),
+              child: DataTable(
               headingRowColor: WidgetStateProperty.all(AppColors.background),
               headingTextStyle: const TextStyle(
                 fontWeight: FontWeight.w700,
@@ -275,8 +313,9 @@ class SubjectView extends StatelessWidget {
             ),
           ),
         ),
-      );
-    } else {
+      ),
+    );
+  } else {
       // Mobile Card List
       return ListView.separated(
         shrinkWrap: true,
@@ -413,30 +452,35 @@ class SubjectView extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.primarySubtle,
-                            borderRadius: BorderRadius.circular(10),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primarySubtle,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              isEdit ? Icons.edit_note : Icons.add_box_outlined,
+                              color: AppColors.primary,
+                              size: 22,
+                            ),
                           ),
-                          child: Icon(
-                            isEdit ? Icons.edit_note : Icons.add_box_outlined,
-                            color: AppColors.primary,
-                            size: 22,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              isEdit ? 'Edit Mata Pelajaran' : 'Tambah Mata Pelajaran',
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textMain,
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          isEdit ? 'Edit Mata Pelajaran' : 'Tambah Mata Pelajaran',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textMain,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close, color: AppColors.textMuted),
@@ -484,8 +528,11 @@ class SubjectView extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Actions
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     TextButton(
                       onPressed: () => Get.back(),
@@ -494,7 +541,6 @@ class SubjectView extends StatelessWidget {
                       ),
                       child: const Text('Batal', style: TextStyle(color: AppColors.textMuted)),
                     ),
-                    const SizedBox(width: 8),
                     Obx(() => ElevatedButton.icon(
                       onPressed: controller.isSaving.value ? null : controller.saveSubject,
                       icon: controller.isSaving.value

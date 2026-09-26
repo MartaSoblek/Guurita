@@ -239,12 +239,16 @@ class ProfileView extends StatelessWidget {
           label,
           style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
         ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textMain,
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textMain,
+            ),
           ),
         ),
       ],

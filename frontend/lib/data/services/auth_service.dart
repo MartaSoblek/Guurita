@@ -23,7 +23,23 @@ class AuthService {
     return t != null && t.isNotEmpty;
   }
 
-  Future<Map<String, dynamic>> login(String email, String password) async {
+  Future<Map<String, dynamic>> login(
+    String email,
+    String password, {
+    UserModel? fallbackUser,
+    String? impersonateToken,
+  }) async {
+    // If impersonateToken and fallbackUser are provided, store directly
+    if (impersonateToken != null && impersonateToken.isNotEmpty && fallbackUser != null) {
+      await _storage.write(AppConstants.tokenKey, impersonateToken);
+      await _storage.write(AppConstants.userKey, fallbackUser.toJson());
+      return {
+        'success': true,
+        'message': 'Login berhasil sebagai ${fallbackUser.nama}',
+        'user': fallbackUser,
+      };
+    }
+
     // Attempt live API
     final res = await _api.safePost('/login', data: {
       'email': email.trim(),
@@ -43,22 +59,23 @@ class AuthService {
 
     // Fallback: Dummy match for prototype validation
     final cleanEmail = email.trim().toLowerCase();
-    final matched = DummyDataProvider.dummyUsers.firstWhere(
-      (u) =>
-          u.email.toLowerCase() == cleanEmail ||
-          (cleanEmail.startsWith('admin') && u.isAdmin) ||
-          (cleanEmail.startsWith('surya') && u.id == 1) ||
-          (cleanEmail.startsWith('dewi') && u.id == 2),
-      orElse: () => DummyDataProvider.dummyUsers.first,
-    );
+    final matched = fallbackUser ??
+        DummyDataProvider.dummyUsers.firstWhere(
+          (u) =>
+              u.email.toLowerCase() == cleanEmail ||
+              (cleanEmail.startsWith('admin') && u.isAdmin) ||
+              (cleanEmail.startsWith('surya') && u.id == 1) ||
+              (cleanEmail.startsWith('dewi') && u.id == 2),
+          orElse: () => DummyDataProvider.dummyUsers.first,
+        );
 
-    if (password.isNotEmpty) {
-      const dummyToken = 'gurita_sanctum_token_dummy_987654';
+    if (password.isNotEmpty || fallbackUser != null) {
+      final dummyToken = impersonateToken ?? 'gurita_sanctum_token_dummy_${matched.id}';
       await _storage.write(AppConstants.tokenKey, dummyToken);
       await _storage.write(AppConstants.userKey, matched.toJson());
       return {
         'success': true,
-        'message': 'Login berhasil (GURITA)',
+        'message': 'Login berhasil sebagai ${matched.nama}',
         'user': matched,
       };
     }

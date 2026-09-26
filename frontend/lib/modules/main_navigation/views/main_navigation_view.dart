@@ -15,6 +15,7 @@ import '../../journal/views/journal_history_view.dart';
 import '../../report/views/report_view.dart';
 import '../../subject/views/subject_view.dart';
 import '../../class/views/class_view.dart';
+import '../../teacher/views/teacher_view.dart';
 import '../../profile/views/profile_view.dart';
 import '../../../data/services/auth_service.dart';
 
@@ -30,7 +31,8 @@ class MainNavigationView extends GetView<NavigationController> {
     ReportView(),         // 5
     SubjectView(),        // 6
     ClassView(),          // 7
-    ProfileView(),        // 8
+    TeacherView(),        // 8
+    ProfileView(),        // 9
   ];
 
   static const List<String> _pageTitles = [
@@ -42,6 +44,7 @@ class MainNavigationView extends GetView<NavigationController> {
     'Rekapitulasi Kehadiran',
     'Mata Pelajaran',
     'Data Kelas',
+    'Data Guru & Pendidik',
     'Profil Pengguna',
   ];
 
@@ -54,6 +57,7 @@ class MainNavigationView extends GetView<NavigationController> {
     'Laporan agregasi kehadiran siswa per bulan dan kelas',
     'Kelola kurikulum dan data master mata pelajaran sekolah',
     'Kelola data rombongan belajar, tingkat jenjang, dan kapasitas siswa',
+    'Kelola akun dinas guru, NIP, peran, dan penugasan mata pelajaran',
     'Informasi akun dinas dan pengaturan sistem GURITA',
   ];
 
@@ -69,7 +73,7 @@ class MainNavigationView extends GetView<NavigationController> {
     return Obx(() {
       final currentIdx = controller.currentIndex.value;
 
-      // Map global index (0-8) to mobile bottom bar index (0-3)
+      // Map global index (0-9) to mobile bottom bar index (0-3)
       int mobileNavIndex = 0;
       if (currentIdx == 0) {
         mobileNavIndex = 0; // Dashboard
@@ -77,7 +81,7 @@ class MainNavigationView extends GetView<NavigationController> {
         mobileNavIndex = 1; // Jadwal
       } else if (currentIdx == 3) {
         mobileNavIndex = 2; // Jurnal
-      } else if (currentIdx == 8) {
+      } else if (currentIdx == 9) {
         mobileNavIndex = 3; // Profil
       } else {
         mobileNavIndex = 0;
@@ -128,6 +132,16 @@ class MainNavigationView extends GetView<NavigationController> {
                 ),
                 if (isAdmin) ...[
                   const PopupMenuItem(
+                    value: 8,
+                    child: Row(
+                      children: [
+                        Icon(Icons.badge, size: 18, color: AppColors.primary),
+                        SizedBox(width: 10),
+                        Text('Data Guru'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
                     value: 6,
                     child: Row(
                       children: [
@@ -170,7 +184,7 @@ class MainNavigationView extends GetView<NavigationController> {
                 controller.changeIndex(3); // Jurnal
                 break;
               case 3:
-                controller.changeIndex(8); // Profil
+                controller.changeIndex(9); // Profil
                 break;
             }
           },

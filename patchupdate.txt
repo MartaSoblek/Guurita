@@ -1,0 +1,450 @@
+================================================================================
+                    GURITA — GERBANG UTAMA INFORMASI SEKOLAH
+                            SMK NEGERI 1 ABANG
+================================================================================
+Berkas Dokumentasi Patch & Riwayat Pembaruan Sistem (patchupdate.txt)
+Format Standar: Kronologis (Dari Awal Pembuatan Aplikasi Sampai Sekarang & Selanjutnya)
+Lokasi Berkas : C:\xampp\htdocs\gurita\patchupdate.txt
+Arsitektur    : Flutter (Satu Codebase Mobile & Web) + Laravel REST API + MySQL
+================================================================================
+
+PETUNJUK STANDAR PENCATATAN UNTUK SETIAP PROMPT BERIKUTNYA:
+--------------------------------------------------------------------------------
+Setiap kali pengguna memberikan perintah / instruksi (prompt), catat riwayatnya
+ke dalam berkas ini pada bagian bawah dengan format standar:
+  [PATCH #XXX] - [TANGGAL & WAKTU] - [RINGKASAN SINGKAT TOPIK]
+  1. PERMINTAAN PENGGUNA (USER PROMPT)
+  2. ANALISIS & TUJUAN PERUBAHAN
+  3. DAFTAR BERKAS YANG DIBUAT / DIUBAH
+  4. RINCIAN PERUBAHAN KODE / FITUR
+  5. HASIL PENGUJIAN & VERIFIKASI (flutter analyze / flutter test / php artisan test)
+--------------------------------------------------------------------------------
+
+
+================================================================================
+RIWAYAT PEMBARUAN (PATCH LOGS)
+================================================================================
+
+--------------------------------------------------------------------------------
+[PATCH #001] - 2026-09-24 s/d 2026-09-25 - INISIASI & GENERATE APLIKASI LENGKAP
+--------------------------------------------------------------------------------
+1. PERMINTAAN PENGGUNA (USER PROMPT):
+   Inisiasi dan generate aplikasi digital sekolah "GURITA" (Gerbang Utama
+   Informasi Sekolah) untuk SMK Negeri 1 Abang. Sistem harus menggunakan satu
+   codebase Flutter untuk Mobile (Android/Tablet) dan Web/Desktop, terintegrasi
+   dengan Backend Laravel REST API dan basis data MySQL/MariaDB. Fitur utama
+   mencakup Jurnal KBM harian, Presensi kehadiran siswa, Jadwal mengajar mingguan,
+   Rekapitulasi laporan kehadiran, dan Manajemen Profil Guru.
+
+2. ANALISIS & TUJUAN PERUBAHAN:
+   - Membangun arsitektur full-stack enterprise modern.
+   - Frontend: Menggunakan Flutter 3.x dengan GetX State Management, Dio HTTP client,
+     Material 3 Theme (Royal Blue #2563EB & Slate Light #F8FAFC), serta responsif
+     multi-platform (Mobile < 600px, Tablet 600-1024px, Desktop > 1024px).
+   - Backend: Menggunakan Laravel REST API terproteksi Laravel Sanctum (Bearer Token),
+     7 tabel migrasi MySQL lengkap dengan relasi Foreign Key, Seeder data riil SMK 1 Abang.
+   - Menghubungkan Frontend Flutter dan Backend Laravel tanpa akses direct MySQL dari client.
+
+3. DAFTAR BERKAS YANG DIBUAT:
+   A. Backend Laravel (backend/):
+      - database/migrations/ : 7 migrasi (users, kelas, siswa, mata_pelajaran,
+        jadwals, jurnals, kehadirans).
+      - database/seeders/    : Seeder data guru, 3 kelas, 90 siswa, mapel, jadwal.
+      - app/Models/          : User, Kelas, Siswa, MataPelajaran, Jadwal, Jurnal, Kehadiran.
+      - app/Http/Controllers/Api/: AuthController, DashboardController, JadwalController,
+        JurnalController, KehadiranController, LaporanController, ProfileController.
+      - routes/api.php       : 22 endpoint REST API terproteksi Sanctum.
+      - tests/Feature/       : Pengujian fungsionalitas REST API.
+   B. Frontend Flutter (frontend/):
+      - lib/main.dart        : Inisialisasi GetX, AppTheme, GetStorage, routes.
+      - lib/app/             : constants, responsive, routes, theme.
+      - lib/core/            : network (DioClient), utils (DateFormatter, AlertHelper,
+        ImageUrlHelper, ExportHelper), widgets (GuritaLogo, AppSidebar, AppHeader,
+        MetricCard, CustomButton, CustomTextField, EmptyStateWidget, LoadingIndicator).
+      - lib/data/            : models (7 data models), services (7 API services),
+        providers (DummyDataProvider fallback untuk offline/preview).
+      - lib/modules/         : splash, auth (login), main_navigation, dashboard,
+        schedule, attendance, journal, subject, class, report, profile.
+      - test/widget_test.dart: 13 test suites pengujian widget, serialisasi, model.
+   C. Root Directory:
+      - start_backend.bat    : Otomasi migrasi, seeder, dan server backend.
+      - README.md            : Dokumentasi arsitektur, instalasi, dan kredensial akun uji coba.
+
+4. RINCIAN FITUR YANG DIHASILKAN:
+   - Autentikasi Guru & Admin dengan login responsif dan penyimpanan token aman.
+   - Shell Navigasi Adaptif (AppSidebar di Desktop, BottomNavigationBar di Mobile).
+   - Dashboard Interaktif dengan 4 metrik status dan jadwal mengajar hari ini.
+   - Modul Jadwal Mengajar mingguan dengan filter hari dan manajemen jadwal.
+   - Modul Presensi Siswa interaktif dengan 1-klik "Hadir Semua", live counter
+     (Hadir, Izin, Sakit, Alpa), serta pencatatan keterangan alasan izin/sakit.
+   - Modul Jurnal KBM dengan form materi pokok, kegiatan, tindak lanjut, catatan,
+     serta integrasi upload foto dokumentasi dan kamera.
+   - Modul Rekap & Laporan Kehadiran bulanan dengan ekspor CSV dan pratinjau cetak.
+   - Modul Master Kelas, Siswa, dan Mata Pelajaran dengan filter dan statistik.
+
+5. HASIL PENGUJIAN:
+   - Backend: Seluruh migrasi dan seeder berhasil dieksekusi tanpa error.
+   - Frontend: 13/13 test suites pada widget_test.dart lulus (Passed 100%).
+
+
+--------------------------------------------------------------------------------
+[PATCH #002] - 2026-09-26 - PERBAIKAN RESPONSIVITAS TOTAL & RESOLUSI OVERFLOW 76PX
+--------------------------------------------------------------------------------
+1. PERMINTAAN PENGGUNA (USER PROMPT):
+   "gunakan semua ukuran menjadi responsif, agar tidak ada tulisan right overflowed by 76 by pixel"
+
+2. ANALISIS & TUJUAN PERUBAHAN:
+   - Terjadi error fatal Flutter: "A RenderFlex overflowed by 76 pixels on the right".
+   - Akar Masalah Teridentifikasi:
+     Pada lib/modules/journal/views/journal_form_view.dart di method _buildSessionCard,
+     baris pertama kartu sesi meletakkan string tanggal Indonesia (misal: "Sabtu, 26 September 2026")
+     bersama badge "HARI INI" berdampingan langsung dengan badge status kehadiran
+     ("Sudah Diisi" / "Belum Diisi") di dalam sebuah `Row(mainAxisAlignment: MainAxisAlignment.spaceBetween)`
+     yang kaku tanpa pembungkus `Expanded` atau `Wrap`. Pada lebar layar mobile standar
+     (360px - 384px), total lebar komponen melebihi ruang yang tersedia persis 76 piksel.
+   - Evaluasi Komprehensif Seluruh Aplikasi:
+     Pola `Row` yang kaku tanpa proteksi pembungkus fleksibel juga ditemukan pada header
+     modul, baris aksi, kartu metrik, dan filter bar saat dibuka pada layar mobile kecil
+     maupun pada layar desktop ketika sidebar 260px sedang terbuka.
+   - Solusi:
+     Mengonversi seluruh layout kaku di 9 berkas utama menjadi responsif menggunakan
+     `LayoutBuilder`, `Wrap`, `Expanded`, `Flexible`, dan `SingleChildScrollView`.
+
+3. DAFTAR BERKAS YANG DIUBAH:
+   1. frontend/lib/modules/journal/views/journal_form_view.dart
+   2. frontend/lib/core/widgets/app_header.dart
+   3. frontend/lib/modules/journal/views/journal_form_dialog.dart
+   4. frontend/lib/modules/subject/views/subject_view.dart
+   5. frontend/lib/modules/attendance/views/attendance_view.dart
+   6. frontend/lib/modules/class/views/class_view.dart
+   7. frontend/lib/modules/schedule/views/schedule_view.dart
+   8. frontend/lib/modules/profile/views/profile_view.dart
+   9. frontend/lib/modules/report/views/report_view.dart
+
+4. RINCIAN PERUBAHAN KODE / PERBAIKAN:
+   A. journal_form_view.dart (Penyebab Utama Overflow 76px):
+      - _buildSessionCard baris 1: Mengubah `Row` kaku menjadi `Expanded` + `Wrap` sehingga
+        tanggal dan badge "HARI INI" tidak lagi mendorong status badge keluar layar.
+      - _buildSessionCard baris 2: Mengubah baris mapel, kelas, jam, dan guru menjadi `Wrap` chips.
+      - _buildSessionCard baris tombol aksi: Menggunakan `LayoutBuilder` sehingga tombol
+        "Isi Jurnal & Presensi" otomatis melebar penuh (full-width) pada layar < 450px.
+      - _buildTodayQuickBanner: Menggunakan `LayoutBuilder` agar tombol aksi tertata vertikal
+        secara rapi pada layar sempit (< 620px).
+   B. app_header.dart:
+      - Membungkus seluruh header dalam `LayoutBuilder`.
+      - Menyembunyikan badge tanggal secara dinamis pada lebar < 680px agar tidak menabrak profil pengguna.
+      - Membungkus judul dan salam dalam `Expanded` dengan `TextOverflow.ellipsis`.
+      - Menyesuaikan ukuran avatar pengguna pada layar < 480px.
+   C. journal_form_dialog.dart:
+      - Header dialog: Menggunakan `Wrap` untuk judul modal dan badge status sesi.
+      - Live Counters Bar: Dibungkus `LayoutBuilder` dan `SingleChildScrollView(scrollDirection: Axis.horizontal)`
+        pada lebar < 480px agar 5 kotak metrik (Total, Hadir, Izin, Sakit, Alpa) tidak terhimpit.
+      - Toolbar Pencarian & Hadir Semua: Menggunakan `LayoutBuilder` bertumpuk vertikal pada < 420px.
+      - Item Siswa (_buildStudentCard): Catatan keterangan izin/sakit/alpa dibungkus `Flexible`
+        agar tidak menekan tombol status H/I/S/A.
+      - Footer Dialog: Menggunakan `LayoutBuilder` sehingga ringkasan status presensi berada
+        di atas tombol aksi "Batal" dan "Simpan Jurnal & Presensi" pada layar < 600px.
+   D. subject_view.dart:
+      - Header bar: Menggunakan `LayoutBuilder` sehingga tombol "Tambah Mapel" berada di bawah
+        judul pada layar mobile (< 600px).
+      - Desktop Table: Membungkus `DataTable` dengan `SingleChildScrollView(scrollDirection: Axis.horizontal)`.
+      - Modal Form: Membungkus judul modal dengan `Expanded` dan tombol aksi footer dengan `Wrap`.
+   E. attendance_view.dart:
+      - Header kartu jadwal dan rekap status kehadiran menggunakan `Wrap`.
+      - Tombol aksi simpan kehadiran dan lanjut isi jurnal menggunakan `LayoutBuilder`
+        bertumpuk vertikal pada layar sempit (< 450px).
+   F. class_view.dart:
+      - Header bar dan search filter bar menggunakan `LayoutBuilder`.
+      - Kartu statistik kelas dan badge siswa/jadwal dibungkus `Expanded` dan `Wrap`.
+      - Tampilan detail siswa pada kelas menggunakan layout fleksibel adaptif.
+   G. schedule_view.dart:
+      - Header bar jadwal mengajar dikonversi dengan `LayoutBuilder` agar tombol "Tambah Jadwal"
+        tersusun rapi di bawah teks pada layar mobile (< 600px).
+   H. profile_view.dart:
+      - Method `_infoRow`: Membungkus teks nilai (NIP, Nama, Email, Instansi) dalam `Expanded`
+        dengan `TextAlign.end` sehingga teks panjang otomatis terbungkus rapi tanpa overflow.
+   I. report_view.dart:
+      - Header bar: Judul dan tombol "Cetak" / "Ekspor CSV" menggunakan `LayoutBuilder`.
+      - Kartu Filter: Memecah 5 dropdown (Bulan, Tahun, Kelas, Mapel, Guru) menjadi modul
+        independen dengan `LayoutBuilder` (1 baris pada >= 960px, 2 baris pada >= 560px,
+        dan bertumpuk pada < 560px).
+      - Grid Metrik Laporan: Mengubah baris kaku 6 metrik desktop menjadi `GridView.count` adaptif
+        (2, 3, atau 6 kolom tergantung lebar container aktual).
+
+5. HASIL PENGUJIAN:
+   - `flutter analyze` : No issues found! (0 error, 0 warning).
+   - `flutter test`    : 13 dari 13 test suites lulus sempurna (Exit Code: 0).
+   - Verifikasi Visual : Tidak ada lagi RenderFlex overflow pada viewport 360px - 1440px.
+
+
+--------------------------------------------------------------------------------
+[PATCH #003] - 2026-09-26 12:15 WITA - INISIALISASI DOKUMENTASI PATCHUPDATE.TXT
+--------------------------------------------------------------------------------
+1. PERMINTAAN PENGGUNA (USER PROMPT):
+   "buatkan file patchupdate.txt, buatkan list update setiap kali lakukan promnt di catat dari awal generate app sampai sekarang dan selanjutnya"
+
+2. ANALISIS & TUJUAN PERUBAHAN:
+   - Membuat berkas resmi `patchupdate.txt` pada direktori root proyek.
+   - Mencatat seluruh riwayat pembaruan sistem secara kronologis dan terstruktur
+     sejak inisiasi pembuatan aplikasi awal (PATCH #001), perbaikan responsivitas
+     total (PATCH #002), hingga inisialisasi dokumen ini (PATCH #003).
+   - Menetapkan pedoman standar dan format seragam agar setiap prompt mendatang
+     dapat langsung ditambahkan ke bagian bawah berkas ini secara berkelanjutan.
+
+3. DAFTAR BERKAS YANG DIBUAT:
+   - C:\xampp\htdocs\gurita\patchupdate.txt
+
+4. RINCIAN ISI DOKUMEN:
+   - Header resmi identitas proyek SMK Negeri 1 Abang & arsitektur sistem.
+   - Panduan dan standar format pengisian untuk prompt selanjutnya.
+   - Dokumentasi lengkap PATCH #001 (Inisiasi dan generate aplikasi fullstack).
+   - Dokumentasi lengkap PATCH #002 (Perbaikan responsivitas dan solusi tuntas overflow 76px).
+   - Dokumentasi lengkap PATCH #003 (Pembuatan berkas patchupdate.txt).
+   - Template kosong siap pakai untuk entri PATCH #004 dan seterusnya.
+
+5. HASIL PENGUJIAN:
+   - Berkas `patchupdate.txt` berhasil dibuat dengan format UTF-8 rapi dan terbaca jelas.
+
+
+--------------------------------------------------------------------------------
+[PATCH #004] - 2026-09-26 12:45 WITA - PENAMBAHAN FITUR KELOLA DATA GURU PADA AKUN ADMINISTRATOR
+--------------------------------------------------------------------------------
+1. PERMINTAAN PENGGUNA (USER PROMPT):
+   "pada akun administrator tambahkan fitur kelola Data guru"
+
+2. ANALISIS & TUJUAN PERUBAHAN:
+   - Menyediakan modul manajemen penuh (CRUD) data guru dan tenaga pendidik khusus untuk
+     akun dengan hak akses Administrator.
+   - Memfasilitasi pendaftaran akun dinas guru baru dengan NIP, nama lengkap & gelar,
+     email kedinasan, kata sandi, penugasan mata pelajaran, serta hak akses (Guru/Admin).
+   - Memfasilitasi pembaruan profil data guru, reset kata sandi oleh administrator,
+     pencarian interaktif multi-parameter, serta filter peran (Semua, Guru, Admin).
+   - Menjaga integritas data sistem sekolah dengan menerapkan aturan keamanan ketat
+     di sisi backend Laravel (mencegah administrator menghapus akun sendiri dan
+     mencegah penghapusan guru yang sudah memiliki riwayat jurnal KBM tercatat).
+   - Menghubungkan modul secara menyeluruh ke navigasi aplikasi (Sidebar Desktop,
+     Popup Menu Mobile, Aksi Cepat Dashboard, dan GetX shell navigation).
+
+3. DAFTAR BERKAS YANG DIBUAT / DIUBAH:
+   A. Backend Laravel (backend/):
+      - backend/app/Http/Controllers/Api/GuruController.php (Baru: CRUD lengkap, validasi admin,
+        penghitungan relasi jadwal & jurnal, pencegahan penghapusan akun berisiko).
+      - backend/routes/api.php (Diperbarui: rute REST API /guru terhubung ke GuruController).
+   B. Frontend Flutter (frontend/):
+      - lib/data/models/user_model.dart (Diperbarui: penambahan atribut totalJadwal dan totalJurnal).
+      - lib/data/providers/dummy_data_provider.dart (Diperbarui: helper CRUD dummy teacher).
+      - lib/data/services/teacher_service.dart (Baru: service API /guru dengan fallback offline).
+      - lib/modules/teacher/controllers/teacher_controller.dart (Baru: GetX state controller).
+      - lib/modules/teacher/views/teacher_view.dart (Baru: antarmuka responsif kelola data guru,
+        4 kartu statistik, pencarian & filter chip, desktop horizontal DataTable, mobile card list,
+        modal form dialog tambah/edit guru, dan modal detail profil pendidik).
+      - lib/core/widgets/app_sidebar.dart (Diperbarui: penambahan item menu "Data Guru" index 8
+        pada sidebar untuk akun admin, profil digeser ke index 9).
+      - lib/modules/main_navigation/views/main_navigation_view.dart (Diperbarui: registrasi
+        TeacherView pada IndexedStack index 8, ProfileView index 9, popup menu mobile).
+      - lib/modules/main_navigation/bindings/navigation_binding.dart (Diperbarui: lazyPut TeacherController).
+      - lib/modules/dashboard/views/dashboard_view.dart (Diperbarui: penambahan aksi cepat
+        "Kelola Guru" pada panel administrator).
+      - test/widget_test.dart (Diperbarui: penambahan unit & widget test suite TeacherService CRUD).
+
+4. RINCIAN PERUBAHAN KODE & FITUR:
+   - Backend GuruController:
+     * Method index(): Mengembalikan data guru & admin dengan eager loading withCount(['jadwal', 'jurnal']),
+       mendukung parameter filter ?role=guru/admin dan pencarian ?q=...
+     * Method show(): Mengembalikan rincian data guru beserta jadwal mengajar, kelas, dan mapel terkait.
+     * Method store(): Memvalidasi NIP unik, email unik, nama, password minimal 6 karakter,
+       peran guru/admin, dan mengenkripsi kata sandi dengan Hash::make.
+     * Method update(): Memungkinkan pengeditan data guru serta penggantian kata sandi opsional.
+     * Method destroy(): Validasi pencegahan penghapusan diri sendiri dan validasi keterikatan jurnal KBM.
+   - Frontend Antarmuka Responsif (TeacherView):
+     * Header adaptif dengan LayoutBuilder dan tombol "+ Tambah Guru".
+     * 4 Kartu Metrik: Total Pendidik, Guru Pengajar, Administrator, dan Jadwal Aktif.
+     * Toolbar Pencarian & Filter Cepat: Input pencarian reaktif, filter chip role, dan badge jumlah.
+     * Desktop: DataTable terbungkus SingleChildScrollView horizontal agar tidak overflow.
+     * Mobile/Tablet: Card list dengan avatar inisial, badge peran, NIP, mapel, jadwal, dan popup menu aksi.
+     * Dialog Tambah/Edit Guru: Form modern dengan toggle visibilitas password dan chip saran mapel.
+     * Dialog Rincian Profil: Tampilan komprehensif profil pendidik dan beban penugasan.
+
+5. HASIL PENGUJIAN:
+   - PHP Syntax Check (`php -l`): No syntax errors detected.
+   - `flutter analyze`          : No issues found! (0 error, 0 warning).
+   - `flutter test`             : 14 dari 14 test suites lulus 100% (Code: 0).
+
+
+--------------------------------------------------------------------------------
+[PATCH #005] - 2026-09-26 13:35 WITA - FITUR LOGIN OTOMATIS SEBAGAI GURU TERPILIH (IMPERSONATION)
+--------------------------------------------------------------------------------
+1. PERMINTAAN PENGGUNA (USER PROMPT):
+   "pada data guru tambahkan tombol untuk bisa login menggunakan user yang di pilih dan diarahkan ke link login dengan otomatis login menggunakan akun yang dipilih di list"
+
+2. ANALISIS & TUJUAN PERUBAHAN:
+   - Menyediakan fitur alih peran (impersonate / login-as) bagi Administrator langsung dari
+     modul Kelola Data Guru.
+   - Pengguna menginginkan alur yang transparan: ketika tombol aksi ditekan pada akun guru terpilih,
+     aplikasi mengarahkan pengguna ke tautan halaman login (`/login`), secara otomatis mengisi
+     kredensial akun guru yang dipilih, menampilkan indikator proses login otomatis, dan
+     langsung masuk ke dalam sistem sebagai guru tersebut.
+   - Di sisi backend Laravel, disediakan endpoint otorisasi khusus administrator untuk
+     menghasilkan token sesi autentikasi resmi (`gurita_impersonate_token`) tanpa perlu
+     mengetahui atau mengubah kata sandi pribadi guru.
+   - Di sisi frontend Flutter, antarmuka responsif diperkaya dengan tombol login di 3 titik strategis:
+     * Kolom aksi tabel desktop (ikon tombol khusus `Icons.login_rounded`).
+     * Menu popup aksi & tombol cepat pada kartu mobile/tablet.
+     * Tombol aksi utama pada dialog detail profil guru.
+   - State controller GetX dioptimalkan untuk menangani parameter rute `/login?email=...&auto=true`
+     dan GetX arguments, disertai banner animasi proses login otomatis di halaman Login.
+
+3. DAFTAR BERKAS YANG DIBUAT / DIUBAH:
+   A. Backend Laravel (backend/):
+      - backend/app/Http/Controllers/Api/GuruController.php (Diperbarui: penambahan method impersonate()
+        untuk otentikasi login-as khusus administrator).
+      - backend/routes/api.php (Diperbarui: rute POST /guru/{id}/impersonate terproteksi Sanctum).
+   B. Frontend Flutter (frontend/):
+      - lib/data/services/teacher_service.dart (Diperbarui: penambahan method impersonateTeacher()
+        dengan penanganan fallback sesi offline/dummy).
+      - lib/data/services/auth_service.dart (Diperbarui: penambahan dukungan fallbackUser dan
+        impersonateToken pada method login()).
+      - lib/modules/auth/controllers/auth_controller.dart (Diperbarui: penanganan auto-login dari
+        route arguments dan query parameters, status visual isAutoLoggingIn & autoLoginTargetName).
+      - lib/modules/auth/views/login_view.dart (Diperbarui: penambahan banner indikator visual
+        login otomatis responsif di atas formulir login).
+      - lib/modules/teacher/controllers/teacher_controller.dart (Diperbarui: method loginAsTeacher()
+        dengan dialog konfirmasi rincian akun, pembersihan sesi lama, dan pengalihan ke /login).
+      - lib/modules/teacher/views/teacher_view.dart (Diperbarui: tombol Login Sebagai Guru di desktop
+        table, tombol pintas dan popup menu mobile, serta tombol utama di modal detail guru).
+      - test/widget_test.dart (Diperbarui: penambahan test suite untuk TeacherService impersonate
+        dan AuthService login-as flow, total 15 test suites).
+
+4. RINCIAN PERUBAHAN KODE / FITUR:
+   - Backend GuruController:
+     * Method impersonate(Request $request, $id): Memvalidasi peran request->user() adalah admin,
+       mencari target user guru, dan menerbitkan token Sanctum resmi beserta objek data guru.
+   - Frontend State & Navigasi:
+     * TeacherController: loginAsTeacher(UserModel teacher) memvalidasi bahwa admin tidak sedang
+       login sebagai akun tersebut, menampilkan dialog konfirmasi profil lengkap (Nama, NIP, Email,
+       Role, Mapel), meminta token impersonasi backend (jika online), lalu memanggil
+       Get.offAllNamed(Routes.login, arguments: {...}, parameters: {...}).
+     * AuthController: Saat /login dimuat, onInit() mendeteksi flag auto_login, mengisi form
+       dengan email target dan default password, menampilkan pesan "Sedang masuk sebagai [Nama Guru]",
+       menjalankan autentikasi dengan jeda visual mulus (650ms), lalu mengalihkan ke /main.
+     * LoginView: Menampilkan kotak informasi bernuansa biru lembut beranimasi loading memutar
+       ketika proses auto-login berlangsung sehingga transisi terlihat sangat jelas dan profesional.
+     * TeacherView: Penambahan tombol dengan tooltip "Login Sebagai [Nama Guru]" di desktop table,
+       mobile card, dan modal detail profil.
+
+5. HASIL PENGUJIAN & VERIFIKASI:
+   - PHP Syntax Check (`php -l`): No syntax errors detected.
+   - `flutter analyze`          : No issues found! (0 error, 0 warning).
+   - `flutter test`             : 15 dari 15 test suites lulus 100% (Code: 0).
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+[PATCH #006] - 2026-09-26 14:15 WITA - FILTER JADWAL HARI INI SESUAI AKUN & POP UP ISI JURNAL DI DASHBOARD
+--------------------------------------------------------------------------------
+1. PERMINTAAN PENGGUNA (USER PROMPT):
+   "pada tampilan dashboard, jadwal mengajar hari ini hanya menampilkan jadwal pada hari tersebut, dan sesuai dengan masing masing akun saja, tambahkan juga pop up isi jurnal"
+   (Disertai instruksi penuntasan "lanjutkan" setelah reconnect sesi percakapan).
+
+2. ANALISIS & TUJUAN PERUBAHAN:
+   - Evaluasi Masalah Jadwal Hari Ini:
+     * Pada `ScheduleService.getTodaySchedules`, daftar fallback dummy sebelumnya memfilter
+       secara statis ke hari `'Rabu' || 'Senin'` tanpa mendeteksi hari berjalan sesungguhnya,
+       sehingga saat dibuka pada hari Sabtu (seperti saat pengujian berlangsung) jadwal yang
+       muncul tidak akurat.
+     * Filter akun pada `getTodaySchedules` belum mengikat ID guru (`currentUser.id`) secara otomatis
+       ketika parameter `guruId` bernilai null, sehingga akun Guru Surya dapat melihat jadwal Guru Dewi
+       dan sebaliknya.
+     * Pada basis data MySQL dan dummy provider, belum tersedia jadwal mengajar pada hari Sabtu
+       untuk kedua guru SMK 1 Abang.
+   - Evaluasi Kebutuhan Pop Up Isi Jurnal:
+     * Tombol "Jurnal" pada kartu jadwal di dashboard sebelumnya hanya berpindah tab menu
+       ke halaman riwayat jurnal (`navController.changeIndex(3)`).
+     * Pengguna menghendaki pengalaman interaktif instan: ketika menekan tombol "Isi Jurnal"
+       langsung dari dashboard, muncul pop-up modal pengisian jurnal KBM dan presensi siswa
+       (`JournalFormDialog`) yang sudah terisi otomatis dengan tanggal hari ini, kelas, jam, mapel,
+       dan daftar siswa kelas terkait.
+     * Ketika jurnal disimpan, status kartu di dashboard langsung berubah menjadi "Sudah Diisi"
+       dengan tombol "Edit Jurnal", dan metrik ringkasan dashboard terbarui secara real-time.
+
+3. DAFTAR BERKAS YANG DIUBAH:
+   1. frontend/lib/core/utils/date_formatter.dart
+   2. frontend/lib/data/models/journal_session_model.dart
+   3. frontend/lib/data/services/schedule_service.dart
+   4. frontend/lib/data/services/journal_service.dart
+   5. frontend/lib/data/providers/dummy_data_provider.dart
+   6. backend/database/seeders/DatabaseSeeder.php
+   7. frontend/lib/modules/journal/views/journal_form_dialog.dart
+   8. frontend/lib/modules/journal/controllers/journal_controller.dart
+   9. frontend/lib/modules/dashboard/controllers/dashboard_controller.dart
+   10. frontend/lib/modules/dashboard/views/dashboard_view.dart
+   11. frontend/test/widget_test.dart
+   12. patchupdate.txt
+
+4. RINCIAN PERUBAHAN KODE & FITUR:
+   - DateFormatter & Helper Hari:
+     * Menambahkan method `DateFormatter.getTodayDayName()` untuk mendapatkan nama hari bahasa
+       Indonesia ('Senin' s/d 'Minggu') secara tepat berdasarkan waktu lokal.
+   - ScheduleService & JournalService:
+     * `getTodaySchedules`: Otomatis menetapkan `targetGuruId = guruId ?? (currentUser.isGuru ? currentUser.id : null)`.
+     * Memfilter hasil query API maupun dummy provider secara presisi berdasarkan `hari.toLowerCase() == todayDay.toLowerCase()`
+       dan `guruId == targetGuruId`.
+     * `getJournals`: Memastikan akun guru non-admin hanya mengambil riwayat jurnal miliknya sendiri.
+     * `createJournal`: Menghubungkan jurnal baru ke akun `AuthService().currentUser`.
+   - Data Seeder & Dummy Provider:
+     * Menambahkan jadwal mengajar hari Sabtu untuk Guru 1 (I Made Surya - XI TKJ 1 & XI TKJ 2)
+       dan Guru 2 (Ni Luh Dewi - X TKJ), serta jadwal hari Senin, Rabu, Kamis untuk melengkapi seminggu penuh.
+   - JournalSessionModel:
+     * Menambahkan factory constructor `JournalSessionModel.fromSchedule(ScheduleModel schedule, ...)`
+       yang secara cerdas mendeteksi apakah jadwal tersebut sudah memiliki jurnal hari ini atau belum.
+   - JournalFormDialog & JournalController:
+     * Menjamin `JournalController` diinisialisasi secara aman (`Get.isRegistered ? Get.find : Get.put`)
+       sebelum dialog modal pop up ditampilkan dari dashboard.
+     * Menambahkan trigger reaktif `loadDashboardData()` saat jurnal berhasil disimpan dari modal.
+   - DashboardController & DashboardView:
+     * Menambahkan observable `todayJournals` untuk memantau status keterisian jurnal per sesi hari ini.
+     * Menambahkan method `isJournalFilled(int jadwalId)`, `getSessionForSchedule(ScheduleModel)`,
+       dan `openJournalForm(BuildContext, ScheduleModel)`.
+     * Menampilkan chip nama hari berjalan pada header `Jadwal Mengajar Hari Ini (Sabtu)`.
+     * Menampilkan pesan ramah jika tidak ada jadwal hari ini untuk akun tersebut.
+     * Menambahkan badge status keterisian sesi: `[✓ Sudah Diisi]` (hijau) atau `[Belum Diisi]` (amber).
+     * Mengubah tombol aksi menjadi `[Isi Jurnal]` (biru royal) atau `[Edit Jurnal]` (teal) yang
+       langsung meluncurkan pop-up modal form lengkap beserta presensi siswa.
+     * Mengintegrasikan shortcut "Buat Jurnal" pada Aksi Cepat agar langsung membuka formulir pop up
+       jadwal hari ini yang belum terisi.
+
+5. HASIL PENGUJIAN & VERIFIKASI:
+   - PHP Syntax Check (`php -l`): No syntax errors detected in DatabaseSeeder.php.
+   - `flutter analyze`          : No issues found! (0 error, 0 warning).
+   - `flutter test`             : 17 dari 17 test suites lulus 100% (Code: 0).
+--------------------------------------------------------------------------------
+
+
+================================================================================
+TEMPLATE PENCATATAN UNTUK PROMPT BERIKUTNYA (SALIN & ISI DI BAWAH INI):
+================================================================================
+/*
+--------------------------------------------------------------------------------
+[PATCH #XXX] - [YYYY-MM-DD HH:MM WITA] - [RINGKASAN SINGKAT TOPIK]
+--------------------------------------------------------------------------------
+1. PERMINTAAN PENGGUNA (USER PROMPT):
+   [Tuliskan prompt / instruksi dari pengguna secara persis atau intinya]
+
+2. ANALISIS & TUJUAN PERUBAHAN:
+   [Jelaskan latar belakang, akar masalah, atau tujuan fitur yang dikerjakan]
+
+3. DAFTAR BERKAS YANG DIBUAT / DIUBAH:
+   - [path/to/file1.dart]
+   - [path/to/file2.php]
+
+4. RINCIAN PERUBAHAN KODE / FITUR:
+   - [Poin 1: Penjelasan perubahan logic, UI, atau database]
+   - [Poin 2: Penjelasan penambahan fungsi atau penyesuaian]
+
+5. HASIL PENGUJIAN & VERIFIKASI:
+   - [Hasil flutter analyze / flutter test / php artisan test / pengecekan manual]
+--------------------------------------------------------------------------------
+*/
+
+
+

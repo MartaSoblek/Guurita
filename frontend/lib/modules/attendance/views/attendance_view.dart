@@ -76,8 +76,11 @@ class AttendanceView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 const Text(
                   'Presensi Kehadiran Siswa',
@@ -181,8 +184,11 @@ class AttendanceView extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 const Text(
                   'Rekap Status Kehadiran',
@@ -498,34 +504,48 @@ class AttendanceView extends StatelessWidget {
   }
 
   Widget _buildBottomActions(BuildContext context, AttendanceController controller, dynamic schedule) {
-    return Row(
-      children: [
-        Expanded(
-          child: CustomButton(
-            text: 'Simpan Kehadiran',
-            icon: Icons.save,
-            isLoading: controller.isSaving.value,
-            onPressed: controller.saveAttendance,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: CustomButton(
-            text: 'Lanjut Isi Jurnal',
-            type: ButtonType.secondary,
-            icon: Icons.arrow_forward,
-            onPressed: () {
-              if (schedule != null) {
-                final jourCtrl = Get.put(JournalController());
-                jourCtrl.populateFromSchedule(schedule);
-                jourCtrl.setAttendanceFromCurrent(controller.attendances);
-              }
-              final navCtrl = Get.find<NavigationController>();
-              navCtrl.changeIndex(3); // Switch to Journal
-            },
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 450;
+        final saveBtn = CustomButton(
+          text: 'Simpan Kehadiran',
+          icon: Icons.save,
+          isLoading: controller.isSaving.value,
+          onPressed: controller.saveAttendance,
+        );
+        final journalBtn = CustomButton(
+          text: 'Lanjut Isi Jurnal',
+          type: ButtonType.secondary,
+          icon: Icons.arrow_forward,
+          onPressed: () {
+            if (schedule != null) {
+              final jourCtrl = Get.put(JournalController());
+              jourCtrl.populateFromSchedule(schedule);
+              jourCtrl.setAttendanceFromCurrent(controller.attendances);
+            }
+            final navCtrl = Get.find<NavigationController>();
+            navCtrl.changeIndex(3); // Switch to Journal
+          },
+        );
+
+        if (isNarrow) {
+          return Column(
+            children: [
+              SizedBox(width: double.infinity, child: saveBtn),
+              const SizedBox(height: 12),
+              SizedBox(width: double.infinity, child: journalBtn),
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(child: saveBtn),
+            const SizedBox(width: 12),
+            Expanded(child: journalBtn),
+          ],
+        );
+      },
     );
   }
 }

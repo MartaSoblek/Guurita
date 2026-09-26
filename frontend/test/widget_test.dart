@@ -12,7 +12,11 @@ import 'package:gurita/data/models/journal_session_model.dart';
 import 'package:get/get.dart';
 import 'package:gurita/data/models/journal_model.dart';
 import 'package:gurita/core/utils/image_url_helper.dart';
+import 'package:gurita/core/utils/date_formatter.dart';
 import 'package:gurita/data/services/report_service.dart';
+import 'package:gurita/data/services/teacher_service.dart';
+import 'package:gurita/data/services/schedule_service.dart';
+import 'package:gurita/data/services/auth_service.dart';
 import 'package:gurita/modules/report/controllers/report_controller.dart';
 
 void main() {
@@ -67,6 +71,65 @@ void main() {
     );
     expect(guru.isAdmin, isFalse);
     expect(guru.role, 'guru');
+  });
+
+  test('TeacherService and UserModel dummy CRUD', () async {
+    final teacherService = TeacherService();
+    final list = await teacherService.getTeachers();
+    expect(list.isNotEmpty, isTrue);
+
+    // Create teacher
+    final newTeacher = await teacherService.createTeacher(
+      nama: 'Guru Pengujian, S.Pd',
+      nip: '199501012022011001',
+      email: 'testing.guru@smkn1abang.sch.id',
+      password: 'password123',
+      mataPelajaran: 'Pemrograman Web',
+      role: 'guru',
+    );
+
+    expect(newTeacher, isNotNull);
+    expect(newTeacher!.nama, 'Guru Pengujian, S.Pd');
+    expect(newTeacher.nip, '199501012022011001');
+    expect(newTeacher.isAdmin, isFalse);
+
+    // Update teacher
+    final updated = await teacherService.updateTeacher(
+      newTeacher.id,
+      nama: 'Guru Pengujian Edit, M.Pd',
+    );
+    expect(updated, isNotNull);
+    expect(updated!.nama, 'Guru Pengujian Edit, M.Pd');
+
+    // Delete teacher
+    final delRes = await teacherService.deleteTeacher(newTeacher.id);
+    expect(delRes['success'], isTrue);
+  });
+
+  test('TeacherService impersonate and AuthService login-as flow', () async {
+    final teacherService = TeacherService();
+    final authService = AuthService();
+
+    final teachers = await teacherService.getTeachers();
+    final target = teachers.first;
+
+    // Test impersonation session generation
+    final impersonateRes = await teacherService.impersonateTeacher(target.id);
+    expect(impersonateRes['success'], isTrue);
+    expect(impersonateRes['user'], isNotNull);
+    expect(impersonateRes['token'], isNotNull);
+
+    // Test auto-login with impersonate token and fallbackUser
+    final loginRes = await authService.login(
+      target.email,
+      'password',
+      fallbackUser: target,
+      impersonateToken: impersonateRes['token'],
+    );
+
+    expect(loginRes['success'], isTrue);
+    expect(authService.currentUser?.email, target.email);
+    expect(authService.isAuthenticated, isTrue);
   });
 
   test('ScheduleModel serialization and dummy CRUD', () {
@@ -415,6 +478,73 @@ void main() {
     expect(csv.contains('XI TKJ 1'), isTrue);
     expect(csv.contains('Andi Pratama'), isTrue);
     expect(csv.contains('Budi Santoso'), isTrue);
+  });
+
+  test('JournalSessionModel.fromSchedule converts schedule to session accurately', () {
+    final schedule = ScheduleModel(
+      id: 8,
+      guruId: 1,
+      kelasId: 2,
+      mapelId: 1,
+      hari: 'Sabtu',
+      jamMulai: '07:30',
+      jamSelesai: '09:45',
+      namaGuru: 'I Made Surya, S.Kom',
+      namaKelas: 'XI TKJ 1',
+      namaMapel: 'IoT',
+    );
+
+    // Unfilled session test
+    final sessionUnfilled = JournalSessionModel.fromSchedule(schedule);
+    expect(sessionUnfilled.jadwalId, 8);
+    expect(sessionUnfilled.hari, 'Sabtu');
+    expect(sessionUnfilled.namaKelas, 'XI TKJ 1');
+    expect(sessionUnfilled.namaMapel, 'IoT');
+    expect(sessionUnfilled.status, 'belum_diisi');
+    expect(sessionUnfilled.isBelumDiisi, isTrue);
+    expect(sessionUnfilled.isSudahDiisi, isFalse);
+
+    // Filled session test with existing journal
+    final existingJournal = JournalModel(
+      id: 99,
+      guruId: 1,
+      jadwalId: 8,
+      tanggal: DateFormatter.getTodayDateIso(),
+      materi: 'Praktikum Sensor Suhu DHT22',
+      kegiatan: 'Siswa memprogram mikrokontroler membaca suhu.',
+      totalHadir: 28,
+      totalIzin: 1,
+      totalSakit: 1,
+      totalAlpa: 0,
+    );
+
+    final sessionFilled = JournalSessionModel.fromSchedule(schedule, existingJournal: existingJournal);
+    expect(sessionFilled.jadwalId, 8);
+    expect(sessionFilled.jurnalId, 99);
+    expect(sessionFilled.status, 'sudah_diisi');
+    expect(sessionFilled.isSudahDiisi, isTrue);
+    expect(sessionFilled.materi, 'Praktikum Sensor Suhu DHT22');
+    expect(sessionFilled.totalHadir, 28);
+    expect(sessionFilled.totalKehadiran, 30);
+  });
+
+  test('ScheduleService filters today schedules strictly by current day and account', () async {
+    final service = ScheduleService();
+    final todayDay = DateFormatter.getTodayDayName();
+
+    // Test Guru 1 (Surya)
+    final schedulesGuru1 = await service.getTodaySchedules(guruId: 1);
+    for (final s in schedulesGuru1) {
+      expect(s.hari.toLowerCase(), todayDay.toLowerCase());
+      expect(s.guruId, 1);
+    }
+
+    // Test Guru 2 (Dewi)
+    final schedulesGuru2 = await service.getTodaySchedules(guruId: 2);
+    for (final s in schedulesGuru2) {
+      expect(s.hari.toLowerCase(), todayDay.toLowerCase());
+      expect(s.guruId, 2);
+    }
   });
 }
 

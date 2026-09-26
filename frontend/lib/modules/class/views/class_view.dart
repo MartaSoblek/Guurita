@@ -57,14 +57,14 @@ class ClassView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Column(
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 600;
+                    final titleWidget = Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             const Text(
                               'Data Kelas',
@@ -104,23 +104,49 @@ class ClassView extends StatelessWidget {
                           ),
                         ),
                       ],
-                    ),
-                    if (controller.isAdmin.value)
-                      ElevatedButton.icon(
-                        onPressed: () => _showClassFormDialog(context, controller),
-                        icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Tambah Kelas'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          elevation: 0,
-                        ),
-                      ),
-                  ],
+                    );
+
+                    final addBtn = controller.isAdmin.value
+                        ? ElevatedButton.icon(
+                            onPressed: () => _showClassFormDialog(context, controller),
+                            icon: const Icon(Icons.add, size: 18),
+                            label: const Text('Tambah Kelas'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
+                            ),
+                          )
+                        : const SizedBox.shrink();
+
+                    if (isNarrow) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          titleWidget,
+                          if (controller.isAdmin.value) ...[
+                            const SizedBox(height: 12),
+                            SizedBox(width: double.infinity, child: addBtn),
+                          ],
+                        ],
+                      );
+                    }
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(child: titleWidget),
+                        if (controller.isAdmin.value) ...[
+                          const SizedBox(width: 12),
+                          addBtn,
+                        ],
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 20),
 
@@ -136,30 +162,28 @@ class ClassView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          onChanged: (val) => controller.searchQuery.value = val,
-                          decoration: InputDecoration(
-                            hintText: 'Cari nama kelas atau tingkat...',
-                            prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textMuted),
-                            isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: AppColors.border),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: AppColors.border),
-                            ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isNarrow = constraints.maxWidth < 500;
+                      final searchField = TextField(
+                        onChanged: (val) => controller.searchQuery.value = val,
+                        decoration: InputDecoration(
+                          hintText: 'Cari nama kelas atau tingkat...',
+                          prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textMuted),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: AppColors.border),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: AppColors.border),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Dropdown filter tingkat
-                      Obx(() => Container(
+                      );
+
+                      final dropdown = Obx(() => Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
@@ -168,6 +192,7 @@ class ClassView extends StatelessWidget {
                             child: DropdownButtonHideUnderline(
                               child: DropdownButton<String>(
                                 value: controller.selectedTingkatFilter.value,
+                                isExpanded: isNarrow,
                                 items: ['Semua', 'X', 'XI', 'XII'].map((t) {
                                   return DropdownMenuItem(
                                     value: t,
@@ -184,8 +209,26 @@ class ClassView extends StatelessWidget {
                                 },
                               ),
                             ),
-                          )),
-                    ],
+                          ));
+
+                      if (isNarrow) {
+                        return Column(
+                          children: [
+                            searchField,
+                            const SizedBox(height: 10),
+                            SizedBox(width: double.infinity, child: dropdown),
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        children: [
+                          Expanded(child: searchField),
+                          const SizedBox(width: 12),
+                          dropdown,
+                        ],
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -290,19 +333,25 @@ class ClassView extends StatelessWidget {
             child: Icon(icon, color: color, size: 22),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                count,
-                style: const TextStyle(fontSize: 18, color: AppColors.textMain, fontWeight: FontWeight.w800),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.w500),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  count,
+                  style: const TextStyle(fontSize: 18, color: AppColors.textMain, fontWeight: FontWeight.w800),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -513,7 +562,9 @@ class ClassView extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 10),
-                        Row(
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -533,7 +584,6 @@ class ClassView extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
@@ -828,14 +878,17 @@ class ClassView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Column(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isNarrow = constraints.maxWidth < 750;
+
+                      final titleSection = Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 10,
+                            runSpacing: 4,
                             children: [
                               Text(
                                 'Daftar Siswa Kelas ${cls.namaKelas}',
@@ -845,7 +898,6 @@ class ClassView extends StatelessWidget {
                                   color: AppColors.textMain,
                                 ),
                               ),
-                              const SizedBox(width: 10),
                               _buildTingkatBadge(cls.tingkat),
                             ],
                           ),
@@ -858,54 +910,81 @@ class ClassView extends StatelessWidget {
                                 ),
                               )),
                         ],
-                      ),
-                      if (controller.isAdmin.value)
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          crossAxisAlignment: WrapCrossAlignment.center,
+                      );
+
+                      final actionButtons = controller.isAdmin.value
+                          ? Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                OutlinedButton.icon(
+                                  onPressed: () => controller.downloadTemplateFile(format: 'xlsx'),
+                                  icon: const Icon(Icons.file_download_outlined, size: 18, color: AppColors.primary),
+                                  label: const Text('Unduh Template', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: AppColors.primary),
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                                OutlinedButton.icon(
+                                  onPressed: () => _showImportExcelDialog(context, controller, cls),
+                                  icon: const Icon(Icons.upload_file, size: 18, color: Colors.green),
+                                  label: const Text('Import Excel', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: Colors.green.shade400),
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                                ElevatedButton.icon(
+                                  onPressed: () => _showStudentFormDialog(context, controller, cls),
+                                  icon: const Icon(Icons.person_add, size: 18),
+                                  label: const Text('Tambah Siswa'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : const SizedBox.shrink();
+
+                      if (isNarrow) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            OutlinedButton.icon(
-                              onPressed: () => controller.downloadTemplateFile(format: 'xlsx'),
-                              icon: const Icon(Icons.file_download_outlined, size: 18, color: AppColors.primary),
-                              label: const Text('Unduh Template', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: AppColors.primary),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
-                            OutlinedButton.icon(
-                              onPressed: () => _showImportExcelDialog(context, controller, cls),
-                              icon: const Icon(Icons.upload_file, size: 18, color: Colors.green),
-                              label: const Text('Import Excel', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: Colors.green.shade400),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
-                            ElevatedButton.icon(
-                              onPressed: () => _showStudentFormDialog(context, controller, cls),
-                              icon: const Icon(Icons.person_add, size: 18),
-                              label: const Text('Tambah Siswa'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                elevation: 0,
-                              ),
-                            ),
+                            titleSection,
+                            if (controller.isAdmin.value) ...[
+                              const SizedBox(height: 14),
+                              actionButtons,
+                            ],
                           ],
-                        ),
-                    ],
+                        );
+                      }
+
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(child: titleSection),
+                          if (controller.isAdmin.value) ...[
+                            const SizedBox(width: 16),
+                            actionButtons,
+                          ],
+                        ],
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 16),

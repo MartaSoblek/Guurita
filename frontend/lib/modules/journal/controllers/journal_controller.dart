@@ -16,6 +16,7 @@ import '../../../core/utils/date_formatter.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/schedule_service.dart';
+import '../../dashboard/controllers/dashboard_controller.dart';
 
 class JournalController extends GetxController {
   final JournalService _journalService = JournalService();
@@ -507,6 +508,9 @@ class JournalController extends GetxController {
           }
           await loadSemesterSessions();
           await loadJournalHistory();
+          if (Get.isRegistered<DashboardController>()) {
+            Get.find<DashboardController>().loadDashboardData();
+          }
           return true;
         } else {
           AlertHelper.showError(res['message'] ?? 'Gagal memperbarui jurnal');
@@ -542,6 +546,9 @@ class JournalController extends GetxController {
           }
           await loadSemesterSessions();
           await loadJournalHistory();
+          if (Get.isRegistered<DashboardController>()) {
+            Get.find<DashboardController>().loadDashboardData();
+          }
           return true;
         } else {
           AlertHelper.showError(res['message'] ?? 'Gagal menyimpan jurnal');

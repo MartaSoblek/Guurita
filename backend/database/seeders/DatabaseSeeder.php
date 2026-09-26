@@ -163,6 +163,60 @@ class DatabaseSeeder extends Seeder
             'jam_selesai' => '10:00:00',
         ]);
 
+        $j8 = Jadwal::create([
+            'guru_id' => $guru1->id,
+            'kelas_id' => $kelas2->id,
+            'mapel_id' => $mapel1->id,
+            'hari' => 'Sabtu',
+            'jam_mulai' => '07:30:00',
+            'jam_selesai' => '09:45:00',
+        ]);
+
+        $j9 = Jadwal::create([
+            'guru_id' => $guru1->id,
+            'kelas_id' => $kelas3->id,
+            'mapel_id' => $mapel1->id,
+            'hari' => 'Sabtu',
+            'jam_mulai' => '10:00:00',
+            'jam_selesai' => '12:15:00',
+        ]);
+
+        $j10 = Jadwal::create([
+            'guru_id' => $guru2->id,
+            'kelas_id' => $kelas1->id,
+            'mapel_id' => $mapel3->id,
+            'hari' => 'Sabtu',
+            'jam_mulai' => '08:00:00',
+            'jam_selesai' => '10:30:00',
+        ]);
+
+        $j11 = Jadwal::create([
+            'guru_id' => $guru2->id,
+            'kelas_id' => $kelas3->id,
+            'mapel_id' => $mapel3->id,
+            'hari' => 'Senin',
+            'jam_mulai' => '10:00:00',
+            'jam_selesai' => '12:00:00',
+        ]);
+
+        $j12 = Jadwal::create([
+            'guru_id' => $guru2->id,
+            'kelas_id' => $kelas1->id,
+            'mapel_id' => $mapel3->id,
+            'hari' => 'Rabu',
+            'jam_mulai' => '08:00:00',
+            'jam_selesai' => '10:00:00',
+        ]);
+
+        $j13 = Jadwal::create([
+            'guru_id' => $guru2->id,
+            'kelas_id' => $kelas2->id,
+            'mapel_id' => $mapel3->id,
+            'hari' => 'Kamis',
+            'jam_mulai' => '10:00:00',
+            'jam_selesai' => '12:00:00',
+        ]);
+
         // 6. Seed Jurnal
         $jur1 = Jurnal::create([
             'guru_id' => $guru1->id,

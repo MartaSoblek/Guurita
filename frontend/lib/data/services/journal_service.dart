@@ -5,6 +5,7 @@ import '../models/journal_session_model.dart';
 import '../models/attendance_model.dart';
 import '../providers/dummy_data_provider.dart';
 import 'api_service.dart';
+import 'auth_service.dart';
 
 class JournalService {
   final ApiService _api = ApiService();
@@ -19,12 +20,15 @@ class JournalService {
     int? mapelId,
     int? guruId,
   }) async {
+    final currentUser = AuthService().currentUser;
+    final targetGuruId = guruId ?? (currentUser != null && !currentUser.isAdmin ? currentUser.id : null);
+
     final Map<String, dynamic> params = {};
     if (search != null && search.isNotEmpty) params['search'] = search;
     if (tanggal != null && tanggal.isNotEmpty) params['tanggal'] = tanggal;
     if (kelasId != null) params['kelas_id'] = kelasId;
     if (mapelId != null) params['mapel_id'] = mapelId;
-    if (guruId != null) params['guru_id'] = guruId;
+    if (targetGuruId != null) params['guru_id'] = targetGuruId;
 
     final res = await _api.safeGet('/jurnal', queryParameters: params);
     if (res != null && res.statusCode == 200 && res.data['success'] == true) {
@@ -34,8 +38,8 @@ class JournalService {
 
     // Local filter fallback
     var list = List<JournalModel>.from(_localJournals);
-    if (guruId != null) {
-      list = list.where((j) => j.guruId == guruId).toList();
+    if (targetGuruId != null) {
+      list = list.where((j) => j.guruId == targetGuruId).toList();
     }
     if (search != null && search.isNotEmpty) {
       final query = search.toLowerCase();
@@ -160,9 +164,10 @@ class JournalService {
       localPhotoData = 'data:image/jpeg;base64,${base64Encode(photoBytes)}';
     }
 
+    final currentUser = AuthService().currentUser;
     final newJournal = JournalModel(
       id: _localJournals.length + 1,
-      guruId: 1,
+      guruId: currentUser?.id ?? 1,
       jadwalId: jadwalId,
       tanggal: tanggal,
       materi: materi,
@@ -174,7 +179,7 @@ class JournalService {
       catatan: catatan,
       fotoKegiatan: localPhotoData,
       fotoKegiatanUrl: localPhotoData,
-      namaGuru: 'I Made Surya, S.Kom',
+      namaGuru: currentUser?.nama ?? 'I Made Surya, S.Kom',
       namaKelas: namaKelas ?? 'XI TKJ 1',
       namaMapel: namaMapel ?? 'IoT',
       jamMulai: jamMulai ?? '07:30',

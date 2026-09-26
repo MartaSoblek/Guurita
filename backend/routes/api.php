@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\KehadiranController;
 use App\Http\Controllers\Api\LaporanController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\SiswaController;
+use App\Http\Controllers\Api\GuruController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,7 +28,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::put('/profile', [ProfileController::class, 'update']);
-    Route::get('/guru', [ProfileController::class, 'guruList']);
+
+    // Kelola Data Guru (Admin & Guru List)
+    Route::get('/guru', [GuruController::class, 'index']);
+    Route::post('/guru', [GuruController::class, 'store']);
+    Route::get('/guru/{id}', [GuruController::class, 'show']);
+    Route::put('/guru/{id}', [GuruController::class, 'update']);
+    Route::delete('/guru/{id}', [GuruController::class, 'destroy']);
+    Route::post('/guru/{id}/impersonate', [GuruController::class, 'impersonate']);
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index']);

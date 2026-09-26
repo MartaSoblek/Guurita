@@ -35,6 +35,11 @@ class DateFormatter {
     return '$dayName, $dayNum $monthName $year';
   }
 
+  static String getTodayDayName() {
+    final now = DateTime.now();
+    return hariIndo[now.weekday - 1];
+  }
+
   static String formatIndonesianDate(String yyyyMmDd) {
     try {
       final dt = DateTime.parse(yyyyMmDd);

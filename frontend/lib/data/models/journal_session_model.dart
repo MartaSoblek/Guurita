@@ -1,3 +1,7 @@
+import 'schedule_model.dart';
+import 'journal_model.dart';
+import '../../core/utils/date_formatter.dart';
+
 class JournalSessionModel {
   final int jadwalId;
   final String tanggal;
@@ -59,6 +63,43 @@ class JournalSessionModel {
   bool get hasFoto =>
       (fotoKegiatan != null && fotoKegiatan!.isNotEmpty) ||
       (fotoKegiatanUrl != null && fotoKegiatanUrl!.isNotEmpty);
+
+  factory JournalSessionModel.fromSchedule(
+    ScheduleModel schedule, {
+    String? tanggal,
+    JournalModel? existingJournal,
+  }) {
+    final tgl = tanggal ?? DateFormatter.getTodayDateIso();
+    final hasJournal = existingJournal != null;
+    return JournalSessionModel(
+      jadwalId: schedule.id,
+      tanggal: tgl,
+      hari: schedule.hari,
+      isToday: true,
+      jamMulai: schedule.jamMulai,
+      jamSelesai: schedule.jamSelesai,
+      kelasId: schedule.kelasId,
+      namaKelas: schedule.namaKelas ?? 'Kelas',
+      mapelId: schedule.mapelId,
+      namaMapel: schedule.namaMapel ?? 'Mata Pelajaran',
+      guruId: schedule.guruId,
+      namaGuru: schedule.namaGuru ?? '',
+      status: hasJournal ? 'sudah_diisi' : 'belum_diisi',
+      jurnalId: existingJournal?.id,
+      materi: existingJournal?.materi,
+      kegiatan: existingJournal?.kegiatan,
+      fotoKegiatan: existingJournal?.fotoKegiatan,
+      fotoKegiatanUrl: existingJournal?.fotoKegiatanUrl,
+      totalHadir: existingJournal?.totalHadir ?? 0,
+      totalIzin: existingJournal?.totalIzin ?? 0,
+      totalSakit: existingJournal?.totalSakit ?? 0,
+      totalAlpa: existingJournal?.totalAlpa ?? 0,
+      totalKehadiran: (existingJournal?.totalHadir ?? 0) +
+          (existingJournal?.totalIzin ?? 0) +
+          (existingJournal?.totalSakit ?? 0) +
+          (existingJournal?.totalAlpa ?? 0),
+    );
+  }
 
   factory JournalSessionModel.fromJson(Map<String, dynamic> json) {
     return JournalSessionModel(

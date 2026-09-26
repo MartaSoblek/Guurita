@@ -19,7 +19,9 @@ class JournalFormDialog extends StatefulWidget {
 
   /// Buka modal pop-up pengisian jurnal dan presensi dengan animasi halus & menarik
   static Future<void> show(BuildContext context, JournalSessionModel session) async {
-    final controller = Get.find<JournalController>();
+    final controller = Get.isRegistered<JournalController>()
+        ? Get.find<JournalController>()
+        : Get.put(JournalController());
     controller.selectSessionToFill(session);
 
     return Get.dialog<void>(
@@ -260,22 +262,22 @@ class _JournalFormDialogState extends State<JournalFormDialog>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
                       children: [
-                        Flexible(
-                          child: Text(
-                            isFilled ? 'Edit Jurnal & Presensi Siswa' : 'Isi Jurnal & Presensi KBM',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: 0.2,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        Text(
+                          isFilled ? 'Edit Jurnal & Presensi Siswa' : 'Isi Jurnal & Presensi KBM',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: 0.2,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(width: 10),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                           decoration: BoxDecoration(
@@ -620,47 +622,45 @@ class _JournalFormDialogState extends State<JournalFormDialog>
               const SizedBox(height: 12),
 
               // Filter Search & Hadir Semua Button
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _studentSearchController,
-                      onChanged: (val) {
-                        setState(() {
-                          _studentSearchQuery = val.trim();
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Cari nama atau NIS siswa...',
-                        prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textMuted),
-                        suffixIcon: _studentSearchQuery.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear, size: 18),
-                                onPressed: () {
-                                  _studentSearchController.clear();
-                                  setState(() {
-                                    _studentSearchQuery = '';
-                                  });
-                                },
-                              )
-                            : null,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: AppColors.border),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: AppColors.border),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final searchField = TextField(
+                    controller: _studentSearchController,
+                    onChanged: (val) {
+                      setState(() {
+                        _studentSearchQuery = val.trim();
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Cari nama atau NIS siswa...',
+                      prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textMuted),
+                      suffixIcon: _studentSearchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () {
+                                _studentSearchController.clear();
+                                setState(() {
+                                  _studentSearchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppColors.border),
                       ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
+                  );
+
+                  final hadirSemuaBtn = ElevatedButton.icon(
                     icon: const Icon(Icons.done_all_rounded, size: 18),
                     label: const Text('Hadir Semua'),
                     style: ElevatedButton.styleFrom(
@@ -671,8 +671,26 @@ class _JournalFormDialogState extends State<JournalFormDialog>
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     onPressed: () => controller.markAllPresent(),
-                  ),
-                ],
+                  );
+
+                  if (constraints.maxWidth < 420) {
+                    return Column(
+                      children: [
+                        searchField,
+                        const SizedBox(height: 8),
+                        SizedBox(width: double.infinity, child: hadirSemuaBtn),
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      Expanded(child: searchField),
+                      const SizedBox(width: 12),
+                      hadirSemuaBtn,
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -765,44 +783,92 @@ class _JournalFormDialogState extends State<JournalFormDialog>
       {'label': 'Alpa (A)', 'count': controller.countAlpa, 'color': AppColors.error, 'bg': AppColors.errorSubtle},
     ];
 
-    return Row(
-      children: counters.map((c) {
-        return Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: c['bg'] as Color,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: (c['color'] as Color).withValues(alpha: 0.2)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  c['label'] as String,
-                  style: TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade700,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 480) {
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: counters.map((c) {
+                return Container(
+                  width: 90,
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: c['bg'] as Color,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: (c['color'] as Color).withValues(alpha: 0.2)),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${c['count']}',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    color: c['color'] as Color,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        c['label'] as String,
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${c['count']}',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: c['color'] as Color,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                );
+              }).toList(),
             ),
-          ),
+          );
+        }
+
+        return Row(
+          children: counters.map((c) {
+            return Expanded(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: c['bg'] as Color,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: (c['color'] as Color).withValues(alpha: 0.2)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      c['label'] as String,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade700,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${c['count']}',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: c['color'] as Color,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
         );
-      }).toList(),
+      },
     );
   }
 
@@ -880,22 +946,24 @@ class _JournalFormDialogState extends State<JournalFormDialog>
                     ),
                     if (hasNote) ...[
                       const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade50,
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.amber.shade300),
-                        ),
-                        child: Text(
-                          'Ket: ${student.keterangan}',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.amber.shade900,
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade50,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.amber.shade300),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          child: Text(
+                            'Ket: ${student.keterangan}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.amber.shade900,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
                     ],
@@ -984,60 +1052,85 @@ class _JournalFormDialogState extends State<JournalFormDialog>
         color: Colors.grey.shade50,
         border: const Border(top: BorderSide(color: AppColors.border, width: 1.2)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Live status summary pill
-          Expanded(
-            child: Obx(
-              () => Row(
-                children: [
-                  const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 18),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      '${controller.countHadir}/${controller.totalSiswa} Hadir • ${controller.countIzin} Izin • ${controller.countSakit} Sakit • ${controller.countAlpa} Alpa',
-                      style: const TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textMain,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 600;
+
+          final statusPill = Obx(
+            () => Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 18),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    '${controller.countHadir}/${controller.totalSiswa} Hadir • ${controller.countIzin} Izin • ${controller.countSakit} Sakit • ${controller.countAlpa} Alpa',
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textMain,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                ),
+              ],
+            ),
+          );
+
+          final cancelButton = OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.textMuted,
+              side: const BorderSide(color: AppColors.border),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            ),
+            onPressed: () => _handleCancel(controller),
+            child: const Text('Batal', style: TextStyle(fontWeight: FontWeight.w700)),
+          );
+
+          final saveButton = Obx(
+            () => CustomButton(
+              text: widget.session.isSudahDiisi ? 'Perbarui Jurnal & Presensi' : 'Simpan Jurnal & Presensi',
+              icon: Icons.save_rounded,
+              isLoading: controller.isSaving.value,
+              height: 44,
+              onPressed: () => _handleSave(controller),
+            ),
+          );
+
+          if (isNarrow) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                statusPill,
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    cancelButton,
+                    const SizedBox(width: 10),
+                    Expanded(child: saveButton),
+                  ],
+                ),
+              ],
+            );
+          }
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: statusPill),
+              const SizedBox(width: 14),
+              Row(
+                children: [
+                  cancelButton,
+                  const SizedBox(width: 12),
+                  saveButton,
                 ],
               ),
-            ),
-          ),
-          const SizedBox(width: 14),
-
-          // Action Buttons
-          Row(
-            children: [
-              OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textMuted,
-                  side: const BorderSide(color: AppColors.border),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                ),
-                onPressed: () => _handleCancel(controller),
-                child: const Text('Batal', style: TextStyle(fontWeight: FontWeight.w700)),
-              ),
-              const SizedBox(width: 12),
-              Obx(
-                () => CustomButton(
-                  text: widget.session.isSudahDiisi ? 'Perbarui Jurnal & Presensi' : 'Simpan Jurnal & Presensi',
-                  icon: Icons.save_rounded,
-                  isLoading: controller.isSaving.value,
-                  height: 44,
-                  onPressed: () => _handleSave(controller),
-                ),
-              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }

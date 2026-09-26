@@ -32,10 +32,11 @@ class _AppSidebarState extends State<AppSidebar> {
       {'title': 'Riwayat Jurnal', 'index': 4, 'icon': Icons.history_edu_outlined, 'selectedIcon': Icons.history_edu},
       {'title': 'Rekap Kehadiran', 'index': 5, 'icon': Icons.assessment_outlined, 'selectedIcon': Icons.assessment},
       if (isAdmin) ...[
+        {'title': 'Data Guru', 'index': 8, 'icon': Icons.badge_outlined, 'selectedIcon': Icons.badge},
         {'title': 'Mata Pelajaran', 'index': 6, 'icon': Icons.menu_book_outlined, 'selectedIcon': Icons.menu_book},
         {'title': 'Kelola Kelas', 'index': 7, 'icon': Icons.meeting_room_outlined, 'selectedIcon': Icons.meeting_room},
       ],
-      {'title': isAdmin ? 'Profil Admin' : 'Profil Guru', 'index': 8, 'icon': Icons.person_outline, 'selectedIcon': Icons.person},
+      {'title': isAdmin ? 'Profil Admin' : 'Profil Guru', 'index': 9, 'icon': Icons.person_outline, 'selectedIcon': Icons.person},
     ];
   }
 

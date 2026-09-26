@@ -37,6 +37,22 @@ class DummyDataProvider {
     ),
   ];
 
+  static void addDummyTeacher(UserModel teacher) {
+    dummyUsers.add(teacher);
+  }
+
+  static void updateDummyTeacher(UserModel teacher) {
+    final index = dummyUsers.indexWhere((u) => u.id == teacher.id);
+    if (index != -1) {
+      dummyUsers[index] = teacher;
+    }
+  }
+
+  static bool deleteDummyTeacher(int id) {
+    dummyUsers.removeWhere((u) => u.id == id);
+    return true;
+  }
+
   // 2. Classes
   static final List<ClassModel> dummyClasses = [
     ClassModel(id: 1, namaKelas: 'X TKJ', tingkat: 'X', totalSiswa: 30, totalJadwal: 2),
@@ -231,6 +247,78 @@ class DummyDataProvider {
       hari: 'Jumat',
       jamMulai: '07:30',
       jamSelesai: '10:00',
+      namaGuru: 'Ni Luh Dewi, S.Pd',
+      namaKelas: 'XI TKJ 1',
+      namaMapel: 'Administrasi Infrastruktur Jaringan',
+    ),
+    ScheduleModel(
+      id: 8,
+      guruId: 1,
+      kelasId: 2,
+      mapelId: 1,
+      hari: 'Sabtu',
+      jamMulai: '07:30',
+      jamSelesai: '09:45',
+      namaGuru: 'I Made Surya, S.Kom',
+      namaKelas: 'XI TKJ 1',
+      namaMapel: 'IoT',
+    ),
+    ScheduleModel(
+      id: 9,
+      guruId: 1,
+      kelasId: 3,
+      mapelId: 1,
+      hari: 'Sabtu',
+      jamMulai: '10:00',
+      jamSelesai: '12:15',
+      namaGuru: 'I Made Surya, S.Kom',
+      namaKelas: 'XI TKJ 2',
+      namaMapel: 'IoT',
+    ),
+    ScheduleModel(
+      id: 10,
+      guruId: 2,
+      kelasId: 1,
+      mapelId: 3,
+      hari: 'Sabtu',
+      jamMulai: '08:00',
+      jamSelesai: '10:30',
+      namaGuru: 'Ni Luh Dewi, S.Pd',
+      namaKelas: 'X TKJ',
+      namaMapel: 'Administrasi Infrastruktur Jaringan',
+    ),
+    ScheduleModel(
+      id: 11,
+      guruId: 2,
+      kelasId: 3,
+      mapelId: 3,
+      hari: 'Senin',
+      jamMulai: '10:00',
+      jamSelesai: '12:00',
+      namaGuru: 'Ni Luh Dewi, S.Pd',
+      namaKelas: 'XI TKJ 2',
+      namaMapel: 'Administrasi Infrastruktur Jaringan',
+    ),
+    ScheduleModel(
+      id: 12,
+      guruId: 2,
+      kelasId: 1,
+      mapelId: 3,
+      hari: 'Rabu',
+      jamMulai: '08:00',
+      jamSelesai: '10:00',
+      namaGuru: 'Ni Luh Dewi, S.Pd',
+      namaKelas: 'X TKJ',
+      namaMapel: 'Administrasi Infrastruktur Jaringan',
+    ),
+    ScheduleModel(
+      id: 13,
+      guruId: 2,
+      kelasId: 2,
+      mapelId: 3,
+      hari: 'Kamis',
+      jamMulai: '10:00',
+      jamSelesai: '12:00',
       namaGuru: 'Ni Luh Dewi, S.Pd',
       namaKelas: 'XI TKJ 1',
       namaMapel: 'Administrasi Infrastruktur Jaringan',

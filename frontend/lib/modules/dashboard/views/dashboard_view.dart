@@ -48,7 +48,7 @@ class DashboardView extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Quick Action Shortcuts
-                _buildQuickActions(context),
+                _buildQuickActions(context, controller),
                 const SizedBox(height: 24),
 
                 // Today Schedules Section
@@ -268,12 +268,15 @@ class DashboardView extends StatelessWidget {
     }
   }
 
-  Widget _buildQuickActions(BuildContext context) {
+  Widget _buildQuickActions(BuildContext context, DashboardController controller) {
+    final isAdmin = AuthService().currentUser?.isAdmin ?? false;
     final actions = [
       {'title': 'Isi Kehadiran', 'icon': Icons.how_to_reg, 'color': AppColors.primary, 'index': 2},
       {'title': 'Buat Jurnal', 'icon': Icons.edit_note, 'color': AppColors.success, 'index': 3},
       {'title': 'Jadwal Mengajar', 'icon': Icons.calendar_today, 'color': AppColors.warning, 'index': 1},
       {'title': 'Rekap Presensi', 'icon': Icons.assessment, 'color': AppColors.info, 'index': 5},
+      if (isAdmin)
+        {'title': 'Kelola Guru', 'icon': Icons.badge, 'color': const Color(0xFF8B5CF6), 'index': 8},
     ];
 
     return Column(
@@ -305,6 +308,14 @@ class DashboardView extends StatelessWidget {
               final color = act['color'] as Color;
               return InkWell(
                 onTap: () {
+                  if (act['title'] == 'Buat Jurnal' && controller.todaySchedules.isNotEmpty) {
+                    final unfilled = controller.todaySchedules.firstWhereOrNull(
+                          (s) => !controller.isJournalFilled(s.id),
+                        ) ??
+                        controller.todaySchedules.first;
+                    controller.openJournalForm(context, unfilled);
+                    return;
+                  }
                   final targetIndex = act['index'] as int;
                   final navController = Get.find<NavigationController>();
                   navController.changeIndex(targetIndex);
@@ -352,18 +363,42 @@ class DashboardView extends StatelessWidget {
   }
 
   Widget _buildTodaySchedules(BuildContext context, DashboardController controller) {
+    final todayDayName = DateFormatter.getTodayDayName();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Jadwal Mengajar Hari Ini',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textMain,
+            Expanded(
+              child: Row(
+                children: [
+                  const Text(
+                    'Jadwal Mengajar Hari Ini',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textMain,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.primarySubtle,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      todayDayName,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             TextButton.icon(
@@ -378,9 +413,9 @@ class DashboardView extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         if (controller.todaySchedules.isEmpty)
-          const EmptyStateWidget(
-            title: 'Tidak Ada Jadwal Hari Ini',
-            message: 'Tidak ada jadwal mengajar yang dijadwalkan untuk hari ini.',
+          EmptyStateWidget(
+            title: 'Tidak Ada Jadwal Hari Ini ($todayDayName)',
+            message: 'Tidak ada jadwal mengajar untuk akun Anda pada hari $todayDayName.',
           )
         else
           ListView.separated(
@@ -390,164 +425,205 @@ class DashboardView extends StatelessWidget {
             separatorBuilder: (_, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final schedule = controller.todaySchedules[index];
+              final isFilled = controller.isJournalFilled(schedule.id);
+
               return Card(
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
-                  side: const BorderSide(color: AppColors.border),
+                  side: BorderSide(
+                    color: isFilled
+                        ? AppColors.success.withValues(alpha: 0.4)
+                        : AppColors.border,
+                  ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isNarrow = constraints.maxWidth < 650;
+                child: InkWell(
+                  onTap: () => controller.openJournalForm(context, schedule),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isNarrow = constraints.maxWidth < 650;
 
-                      final timeBadge = Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: AppColors.primarySubtle,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.access_time, size: 16, color: AppColors.primary),
-                            const SizedBox(height: 4),
-                            Text(
-                              schedule.jamMulai,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            Text(
-                              schedule.jamSelesai,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textMuted,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-
-                      final details = Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
+                        final timeBadge = Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isFilled ? AppColors.successSubtle : AppColors.primarySubtle,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: AppColors.background,
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: AppColors.border),
-                                ),
-                                child: Text(
-                                  schedule.namaKelas ?? 'Kelas',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textMain,
-                                  ),
+                              Icon(
+                                isFilled ? Icons.check_circle_outline : Icons.access_time,
+                                size: 16,
+                                color: isFilled ? AppColors.success : AppColors.primary,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                schedule.jamMulai,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: isFilled ? AppColors.success : AppColors.primary,
                                 ),
                               ),
-                              const SizedBox(width: 8),
                               Text(
-                                schedule.hari,
+                                schedule.jamSelesai,
                                 style: const TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 11,
                                   color: AppColors.textMuted,
-                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            schedule.namaMapel ?? 'Mata Pelajaran',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textMain,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (schedule.namaGuru != null) ...[
-                            const SizedBox(height: 3),
-                            Text(
-                              'Pengampu: ${schedule.namaGuru}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textMuted,
-                              ),
-                            ),
-                          ],
-                        ],
-                      );
+                        );
 
-                      final presensiBtn = OutlinedButton.icon(
-                        onPressed: () {
-                          final navController = Get.find<NavigationController>();
-                          navController.changeIndex(2); // Kehadiran
-                        },
-                        icon: const Icon(Icons.how_to_reg, size: 16),
-                        label: const Text('Presensi'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        ),
-                      );
-
-                      final jurnalBtn = ElevatedButton.icon(
-                        onPressed: () {
-                          final navController = Get.find<NavigationController>();
-                          navController.changeIndex(3); // Jurnal
-                        },
-                        icon: const Icon(Icons.edit_note, size: 16),
-                        label: const Text('Jurnal'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        ),
-                      );
-
-                      if (isNarrow) {
-                        return Column(
+                        final details = Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Row(
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
+                              crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
-                                timeBadge,
-                                const SizedBox(width: 14),
-                                Expanded(child: details),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.background,
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: AppColors.border),
+                                  ),
+                                  child: Text(
+                                    schedule.namaKelas ?? 'Kelas',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textMain,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: isFilled ? AppColors.successSubtle : AppColors.warningSubtle,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        isFilled ? Icons.check_circle_rounded : Icons.pending_actions_rounded,
+                                        size: 13,
+                                        color: isFilled ? AppColors.success : AppColors.warning,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        isFilled ? 'Sudah Diisi' : 'Belum Diisi',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: isFilled ? AppColors.success : const Color(0xFFB45309),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Text(
+                                  schedule.hari,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textMuted,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               ],
                             ),
-                            const SizedBox(height: 14),
-                            Row(
-                              children: [
-                                Expanded(child: presensiBtn),
-                                const SizedBox(width: 8),
-                                Expanded(child: jurnalBtn),
-                              ],
+                            const SizedBox(height: 6),
+                            Text(
+                              schedule.namaMapel ?? 'Mata Pelajaran',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textMain,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
+                            if (schedule.namaGuru != null) ...[
+                              const SizedBox(height: 3),
+                              Text(
+                                'Pengampu: ${schedule.namaGuru}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
+                            ],
                           ],
                         );
-                      } else {
-                        return Row(
-                          children: [
-                            timeBadge,
-                            const SizedBox(width: 16),
-                            Expanded(child: details),
-                            const SizedBox(width: 12),
-                            presensiBtn,
-                            const SizedBox(width: 8),
-                            jurnalBtn,
-                          ],
+
+                        final presensiBtn = OutlinedButton.icon(
+                          onPressed: () {
+                            final navController = Get.find<NavigationController>();
+                            navController.changeIndex(2); // Kehadiran
+                          },
+                          icon: const Icon(Icons.how_to_reg, size: 16),
+                          label: const Text('Presensi'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          ),
                         );
-                      }
-                    },
+
+                        final jurnalBtn = ElevatedButton.icon(
+                          onPressed: () => controller.openJournalForm(context, schedule),
+                          icon: Icon(isFilled ? Icons.edit_note : Icons.add_task, size: 16),
+                          label: Text(isFilled ? 'Edit Jurnal' : 'Isi Jurnal'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isFilled ? const Color(0xFF0F766E) : AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          ),
+                        );
+
+                        if (isNarrow) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  timeBadge,
+                                  const SizedBox(width: 14),
+                                  Expanded(child: details),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              Row(
+                                children: [
+                                  Expanded(child: presensiBtn),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: jurnalBtn),
+                                ],
+                              ),
+                            ],
+                          );
+                        } else {
+                          return Row(
+                            children: [
+                              timeBadge,
+                              const SizedBox(width: 16),
+                              Expanded(child: details),
+                              const SizedBox(width: 12),
+                              presensiBtn,
+                              const SizedBox(width: 8),
+                              jurnalBtn,
+                            ],
+                          );
+                        }
+                      },
+                    ),
                   ),
                 ),
               );

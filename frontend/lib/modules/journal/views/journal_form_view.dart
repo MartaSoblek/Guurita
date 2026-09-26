@@ -49,61 +49,124 @@ class JournalFormView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: AppColors.primarySubtle,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(Icons.calendar_month_rounded, color: AppColors.primary, size: 24),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isNarrow = constraints.maxWidth < 650;
+                          if (isNarrow) {
+                            return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Obx(
-                                  () => Text(
-                                    controller.semesterTitle.value,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.textMain,
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primarySubtle,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(Icons.calendar_month_rounded, color: AppColors.primary, size: 24),
                                     ),
-                                  ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Obx(
+                                        () => Text(
+                                          controller.semesterTitle.value,
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppColors.textMain,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.refresh, color: AppColors.primary),
+                                      tooltip: 'Muat Ulang Sesi',
+                                      onPressed: () => controller.loadSemesterSessions(),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: 8),
                                 const Text(
                                   'Jadwal KBM 1 semester sesuai hari & tanggal berjalan. Sesi di hari mendatang otomatis terkunci dan baru muncul ketika hari KBM telah tiba.',
                                   style: TextStyle(fontSize: 12, color: AppColors.textMuted),
                                 ),
+                                const SizedBox(height: 10),
+                                OutlinedButton.icon(
+                                  icon: const Icon(Icons.history_edu, size: 16),
+                                  label: const Text('Riwayat Jurnal'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.primary,
+                                    side: const BorderSide(color: AppColors.primary),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  ),
+                                  onPressed: () {
+                                    if (Get.isRegistered<NavigationController>()) {
+                                      Get.find<NavigationController>().changeIndex(4);
+                                    }
+                                  },
+                                ),
                               ],
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.refresh, color: AppColors.primary),
-                            tooltip: 'Muat Ulang Sesi',
-                            onPressed: () => controller.loadSemesterSessions(),
-                          ),
-                          const SizedBox(width: 6),
-                          OutlinedButton.icon(
-                            icon: const Icon(Icons.history_edu, size: 16),
-                            label: const Text('Riwayat Jurnal'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                              side: const BorderSide(color: AppColors.primary),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            ),
-                            onPressed: () {
-                              if (Get.isRegistered<NavigationController>()) {
-                                Get.find<NavigationController>().changeIndex(4);
-                              }
-                            },
-                          ),
-                        ],
+                            );
+                          }
+                          return Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primarySubtle,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(Icons.calendar_month_rounded, color: AppColors.primary, size: 24),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Obx(
+                                      () => Text(
+                                        controller.semesterTitle.value,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.textMain,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    const Text(
+                                      'Jadwal KBM 1 semester sesuai hari & tanggal berjalan. Sesi di hari mendatang otomatis terkunci dan baru muncul ketika hari KBM telah tiba.',
+                                      style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.refresh, color: AppColors.primary),
+                                tooltip: 'Muat Ulang Sesi',
+                                onPressed: () => controller.loadSemesterSessions(),
+                              ),
+                              const SizedBox(width: 6),
+                              OutlinedButton.icon(
+                                icon: const Icon(Icons.history_edu, size: 16),
+                                label: const Text('Riwayat Jurnal'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.primary,
+                                  side: const BorderSide(color: AppColors.primary),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                ),
+                                onPressed: () {
+                                  if (Get.isRegistered<NavigationController>()) {
+                                    Get.find<NavigationController>().changeIndex(4);
+                                  }
+                                },
+                              ),
+                            ],
+                          );
+                        },
                       ),
                       const SizedBox(height: 16),
                       // Stats Ringkasan Sesi Semester
@@ -417,50 +480,59 @@ class JournalFormView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Row 1: Tanggal & Badge Status
+            // Row 1: Tanggal & Badge Status (Responsive Wrap to prevent overflow)
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.event,
-                      size: 16,
-                      color: isToday ? AppColors.primary : AppColors.textMuted,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      DateFormatter.formatIndonesianDate(session.tanggal),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: isToday ? AppColors.primary : AppColors.textMain,
+                Expanded(
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.event,
+                            size: 16,
+                            color: isToday ? AppColors.primary : AppColors.textMuted,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            DateFormatter.formatIndonesianDate(session.tanggal),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isToday ? AppColors.primary : AppColors.textMain,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    if (isToday) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade100,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.amber.shade700, width: 0.8),
-                        ),
-                        child: Text(
-                          'HARI INI',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.amber.shade900,
+                      if (isToday)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade100,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.amber.shade700, width: 0.8),
+                          ),
+                          child: Text(
+                            'HARI INI',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.amber.shade900,
+                            ),
                           ),
                         ),
-                      ),
                     ],
-                  ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 // Status Badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                   decoration: BoxDecoration(
                     color: isFilled ? AppColors.successSubtle : AppColors.errorSubtle,
                     borderRadius: BorderRadius.circular(8),
@@ -490,64 +562,63 @@ class JournalFormView extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Row 2: Mapel, Kelas, Jam
-            Row(
+            // Row 2: Mapel, Kelas, Jam (Responsive Column & Wrap)
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        session.namaMapel,
+                Text(
+                  session.namaMapel,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textMain,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primarySubtle,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        session.namaKelas,
                         style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textMain,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.access_time, size: 14, color: AppColors.textMuted),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${session.jamMulai} - ${session.jamSelesai}',
+                          style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                        ),
+                      ],
+                    ),
+                    if (session.namaGuru.isNotEmpty)
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.primarySubtle,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              session.namaKelas,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(Icons.access_time, size: 14, color: AppColors.textMuted),
+                          const Icon(Icons.person_outline, size: 14, color: AppColors.textMuted),
                           const SizedBox(width: 4),
                           Text(
-                            '${session.jamMulai} - ${session.jamSelesai}',
+                            session.namaGuru,
                             style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                           ),
-                          if (session.namaGuru.isNotEmpty) ...[
-                            const SizedBox(width: 10),
-                            const Icon(Icons.person_outline, size: 14, color: AppColors.textMuted),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                session.namaGuru,
-                                style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
                         ],
                       ),
-                    ],
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -587,17 +658,10 @@ class JournalFormView extends StatelessWidget {
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.photo_camera_rounded, size: 12, color: Colors.blue.shade700),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Ada Foto',
-                              style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.blue.shade700,
-                              ),
-                            ),
+                          children: const [
+                            Icon(Icons.photo_camera_rounded, size: 12, color: Colors.blue),
+                            SizedBox(width: 4),
+                            Text('Ada Foto', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.blue)),
                           ],
                         ),
                       ),
@@ -607,7 +671,7 @@ class JournalFormView extends StatelessWidget {
               ),
             ],
 
-            // Lencana Kehadiran Siswa pada List Jurnal
+            // Lencana Kehadiran Siswa pada List Jurnal (Responsive Wrap)
             if (isFilled) ...[
               const SizedBox(height: 10),
               Container(
@@ -618,24 +682,37 @@ class JournalFormView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
                 ),
-                child: Row(
+                child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 6,
                   children: [
-                    const Icon(Icons.people_alt_outlined, size: 16, color: AppColors.primary),
-                    const SizedBox(width: 8),
-                    Text(
-                      session.totalKehadiran > 0
-                          ? 'Kehadiran Siswa: ${session.totalHadir}/${session.totalKehadiran} Hadir'
-                          : 'Presensi Siswa: Terdata',
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.people_alt_outlined, size: 16, color: AppColors.primary),
+                        const SizedBox(width: 8),
+                        Text(
+                          session.totalKehadiran > 0
+                              ? 'Kehadiran Siswa: ${session.totalHadir}/${session.totalKehadiran} Hadir'
+                              : 'Presensi Siswa: Terdata',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary),
+                        ),
+                      ],
                     ),
-                    const Spacer(),
-                    _buildAttendanceMiniBadge('H', session.totalHadir, AppColors.success, AppColors.successSubtle),
-                    const SizedBox(width: 6),
-                    _buildAttendanceMiniBadge('I', session.totalIzin, Colors.blue.shade700, Colors.blue.shade50),
-                    const SizedBox(width: 6),
-                    _buildAttendanceMiniBadge('S', session.totalSakit, Colors.amber.shade800, Colors.amber.shade50),
-                    const SizedBox(width: 6),
-                    _buildAttendanceMiniBadge('A', session.totalAlpa, AppColors.error, AppColors.errorSubtle),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildAttendanceMiniBadge('H', session.totalHadir, AppColors.success, AppColors.successSubtle),
+                        const SizedBox(width: 6),
+                        _buildAttendanceMiniBadge('I', session.totalIzin, Colors.blue.shade700, Colors.blue.shade50),
+                        const SizedBox(width: 6),
+                        _buildAttendanceMiniBadge('S', session.totalSakit, Colors.amber.shade800, Colors.amber.shade50),
+                        const SizedBox(width: 6),
+                        _buildAttendanceMiniBadge('A', session.totalAlpa, AppColors.error, AppColors.errorSubtle),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -645,9 +722,13 @@ class JournalFormView extends StatelessWidget {
                 children: const [
                   Icon(Icons.how_to_reg_outlined, size: 14, color: AppColors.textMuted),
                   SizedBox(width: 6),
-                  Text(
-                    'Presensi kehadiran siswa dicatat saat mengisi jurnal ini',
-                    style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: AppColors.textMuted),
+                  Expanded(
+                    child: Text(
+                      'Presensi kehadiran siswa dicatat saat mengisi jurnal ini',
+                      style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: AppColors.textMuted),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
@@ -655,36 +736,40 @@ class JournalFormView extends StatelessWidget {
 
             const SizedBox(height: 14),
 
-            // Row 3: Action Button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (isFilled)
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.edit_note, size: 16),
-                    label: const Text('Lihat / Edit Jurnal & Presensi'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    ),
-                    onPressed: () => JournalFormDialog.show(context, session),
-                  )
-                else
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.add_circle_outline, size: 16),
-                    label: Text(isToday ? 'Isi Jurnal & Presensi Hari Ini' : 'Isi Jurnal & Presensi Sesi Ini'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isToday ? AppColors.primary : Colors.teal.shade700,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                    ),
-                    onPressed: () => JournalFormDialog.show(context, session),
-                  ),
-              ],
+            // Row 3: Action Button (Responsive Layout)
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 450;
+                final button = isFilled
+                    ? OutlinedButton.icon(
+                        icon: const Icon(Icons.edit_note, size: 16),
+                        label: const Text('Lihat / Edit Jurnal & Presensi'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: const BorderSide(color: AppColors.primary),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        ),
+                        onPressed: () => JournalFormDialog.show(context, session),
+                      )
+                    : ElevatedButton.icon(
+                        icon: const Icon(Icons.add_circle_outline, size: 16),
+                        label: Text(isToday ? 'Isi Jurnal & Presensi Hari Ini' : 'Isi Jurnal & Presensi Sesi Ini'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isToday ? AppColors.primary : Colors.teal.shade700,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                        ),
+                        onPressed: () => JournalFormDialog.show(context, session),
+                      );
+
+                if (isNarrow) {
+                  return SizedBox(width: double.infinity, child: button);
+                }
+                return Align(alignment: Alignment.centerRight, child: button);
+              },
             ),
           ],
         ),
@@ -734,55 +819,64 @@ class JournalFormView extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.amber.shade500,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 24),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isNarrow = constraints.maxWidth < 620;
+
+            final bannerInfo = Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade500,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Sesi KBM Hari Ini Siap Diisi!',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF92400E),
-                        ),
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        children: [
+                          const Text(
+                            'Sesi KBM Hari Ini Siap Diisi!',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF92400E),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade200,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Text(
+                              'Hari Ini',
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF78350F)),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade200,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Text(
-                          'Hari Ini',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF78350F)),
-                        ),
+                      const SizedBox(height: 3),
+                      Text(
+                        '${todayUnfilled.namaMapel} • ${todayUnfilled.namaKelas} (${todayUnfilled.jamMulai} - ${todayUnfilled.jamSelesai} WITA)',
+                        style: TextStyle(fontSize: 13, color: Colors.amber.shade900, fontWeight: FontWeight.w600),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '${todayUnfilled.namaMapel} â€¢ ${todayUnfilled.namaKelas} (${todayUnfilled.jamMulai} - ${todayUnfilled.jamSelesai} WITA)',
-                    style: TextStyle(fontSize: 13, color: Colors.amber.shade900, fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            ElevatedButton.icon(
+                ),
+              ],
+            );
+
+            final actionButton = ElevatedButton.icon(
               icon: const Icon(Icons.open_in_new_rounded, size: 16),
               label: const Text('Buka Pop-up Isi Jurnal'),
               style: ElevatedButton.styleFrom(
@@ -793,8 +887,27 @@ class JournalFormView extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () => JournalFormDialog.show(context, todayUnfilled),
-            ),
-          ],
+            );
+
+            if (isNarrow) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  bannerInfo,
+                  const SizedBox(height: 12),
+                  SizedBox(width: double.infinity, child: actionButton),
+                ],
+              );
+            }
+
+            return Row(
+              children: [
+                Expanded(child: bannerInfo),
+                const SizedBox(width: 12),
+                actionButton,
+              ],
+            );
+          },
         ),
       ),
     );

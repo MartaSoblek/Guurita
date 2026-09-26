@@ -6,6 +6,8 @@ class UserModel {
   final String role;
   final String? foto;
   final String? mataPelajaran;
+  final int totalJadwal;
+  final int totalJurnal;
 
   UserModel({
     required this.id,
@@ -15,6 +17,8 @@ class UserModel {
     this.role = 'guru',
     this.foto,
     this.mataPelajaran,
+    this.totalJadwal = 0,
+    this.totalJurnal = 0,
   });
 
   bool get isAdmin => role == 'admin';
@@ -28,6 +32,8 @@ class UserModel {
       role: json['role'] ?? 'guru',
       foto: json['foto'],
       mataPelajaran: json['mata_pelajaran'] ?? json['mapel'],
+      totalJadwal: json['jadwal_count'] ?? json['total_jadwal'] ?? 0,
+      totalJurnal: json['jurnal_count'] ?? json['total_jurnal'] ?? 0,
     );
   }
 
@@ -40,6 +46,8 @@ class UserModel {
       'role': role,
       'foto': foto,
       'mata_pelajaran': mataPelajaran,
+      'jadwal_count': totalJadwal,
+      'jurnal_count': totalJurnal,
     };
   }
 
@@ -51,6 +59,8 @@ class UserModel {
     String? role,
     String? foto,
     String? mataPelajaran,
+    int? totalJadwal,
+    int? totalJurnal,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -60,6 +70,8 @@ class UserModel {
       role: role ?? this.role,
       foto: foto ?? this.foto,
       mataPelajaran: mataPelajaran ?? this.mataPelajaran,
+      totalJadwal: totalJadwal ?? this.totalJadwal,
+      totalJurnal: totalJurnal ?? this.totalJurnal,
     );
   }
 }

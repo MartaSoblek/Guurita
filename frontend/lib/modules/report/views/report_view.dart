@@ -61,35 +61,35 @@ class ReportView extends StatelessWidget {
   }
 
   Widget _buildHeaderBar(BuildContext context, ReportController controller, bool isDesktop) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Rekapitulasi Kehadiran',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textMain,
-                  letterSpacing: -0.5,
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 600;
+
+        final titleCol = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Rekapitulasi Kehadiran',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textMain,
+                letterSpacing: -0.5,
               ),
-              const SizedBox(height: 4),
-              Text(
-                '${controller.namaKelas.value} • ${controller.namaMapel.value} • ${controller.selectedMonthName} ${controller.selectedYear.value}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textMuted,
-                ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${controller.namaKelas.value} • ${controller.namaMapel.value} • ${controller.selectedMonthName} ${controller.selectedYear.value}',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textMuted,
               ),
-            ],
-          ),
-        ),
-        Wrap(
+            ),
+          ],
+        );
+
+        final actionButtons = Wrap(
           spacing: 10,
           runSpacing: 10,
           children: [
@@ -118,8 +118,136 @@ class ReportView extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ],
+        );
+
+        if (isNarrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              titleCol,
+              const SizedBox(height: 14),
+              actionButtons,
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: titleCol),
+            const SizedBox(width: 14),
+            actionButtons,
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBulanDropdown(ReportController controller) {
+    return _buildDropdownWrapper(
+      label: 'Bulan',
+      child: DropdownButtonFormField<int>(
+        value: controller.selectedMonth.value,
+        isExpanded: true,
+        decoration: _inputDecoration(),
+        items: controller.months.map((m) {
+          return DropdownMenuItem<int>(
+            value: m['val'] as int,
+            child: Text(m['name'] as String, style: const TextStyle(fontSize: 13)),
+          );
+        }).toList(),
+        onChanged: controller.filterByMonth,
+      ),
+    );
+  }
+
+  Widget _buildTahunDropdown(ReportController controller) {
+    return _buildDropdownWrapper(
+      label: 'Tahun',
+      child: DropdownButtonFormField<int>(
+        value: controller.selectedYear.value,
+        isExpanded: true,
+        decoration: _inputDecoration(),
+        items: controller.years.map((y) {
+          return DropdownMenuItem<int>(
+            value: y,
+            child: Text('$y', style: const TextStyle(fontSize: 13)),
+          );
+        }).toList(),
+        onChanged: controller.filterByYear,
+      ),
+    );
+  }
+
+  Widget _buildKelasDropdown(ReportController controller) {
+    return _buildDropdownWrapper(
+      label: 'Kelas',
+      child: DropdownButtonFormField<int?>(
+        value: controller.selectedClass.value,
+        isExpanded: true,
+        decoration: _inputDecoration(),
+        items: [
+          const DropdownMenuItem(
+            value: null,
+            child: Text('Semua Kelas', style: TextStyle(fontSize: 13)),
+          ),
+          ...controller.classList.map((c) {
+            return DropdownMenuItem<int?>(
+              value: c.id,
+              child: Text(c.namaKelas, style: const TextStyle(fontSize: 13)),
+            );
+          }),
+        ],
+        onChanged: controller.filterByClass,
+      ),
+    );
+  }
+
+  Widget _buildMapelDropdown(ReportController controller) {
+    return _buildDropdownWrapper(
+      label: 'Mata Pelajaran',
+      child: DropdownButtonFormField<int?>(
+        value: controller.selectedSubject.value,
+        isExpanded: true,
+        decoration: _inputDecoration(),
+        items: [
+          const DropdownMenuItem(
+            value: null,
+            child: Text('Semua Mapel', style: TextStyle(fontSize: 13)),
+          ),
+          ...controller.subjectList.map((s) {
+            return DropdownMenuItem<int?>(
+              value: s.id,
+              child: Text(s.namaMapel, style: const TextStyle(fontSize: 13)),
+            );
+          }),
+        ],
+        onChanged: controller.filterBySubject,
+      ),
+    );
+  }
+
+  Widget _buildGuruDropdown(ReportController controller) {
+    return _buildDropdownWrapper(
+      label: 'Guru Pengampu',
+      child: DropdownButtonFormField<int?>(
+        value: controller.selectedGuru.value,
+        isExpanded: true,
+        decoration: _inputDecoration(),
+        items: [
+          const DropdownMenuItem(
+            value: null,
+            child: Text('Semua Guru', style: TextStyle(fontSize: 13)),
+          ),
+          ...controller.guruList.map((g) {
+            return DropdownMenuItem<int?>(
+              value: g.id,
+              child: Text(g.nama, style: const TextStyle(fontSize: 13)),
+            );
+          }),
+        ],
+        onChanged: controller.filterByGuru,
+      ),
     );
   }
 
@@ -158,242 +286,74 @@ class ReportView extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            if (isDesktop)
-              Row(
-                children: [
-                  // Bulan
-                  Expanded(
-                    flex: 2,
-                    child: _buildDropdownWrapper(
-                      label: 'Bulan',
-                      child: DropdownButtonFormField<int>(
-                        value: controller.selectedMonth.value,
-                        isExpanded: true,
-                        decoration: _inputDecoration(),
-                        items: controller.months.map((m) {
-                          return DropdownMenuItem<int>(
-                            value: m['val'] as int,
-                            child: Text(m['name'] as String, style: const TextStyle(fontSize: 13)),
-                          );
-                        }).toList(),
-                        onChanged: controller.filterByMonth,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Tahun
-                  Expanded(
-                    flex: 2,
-                    child: _buildDropdownWrapper(
-                      label: 'Tahun',
-                      child: DropdownButtonFormField<int>(
-                        value: controller.selectedYear.value,
-                        isExpanded: true,
-                        decoration: _inputDecoration(),
-                        items: controller.years.map((y) {
-                          return DropdownMenuItem<int>(
-                            value: y,
-                            child: Text('$y', style: const TextStyle(fontSize: 13)),
-                          );
-                        }).toList(),
-                        onChanged: controller.filterByYear,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Kelas
-                  Expanded(
-                    flex: 3,
-                    child: _buildDropdownWrapper(
-                      label: 'Kelas',
-                      child: DropdownButtonFormField<int?>(
-                        value: controller.selectedClass.value,
-                        isExpanded: true,
-                        decoration: _inputDecoration(),
-                        items: [
-                          const DropdownMenuItem(
-                            value: null,
-                            child: Text('Semua Kelas', style: TextStyle(fontSize: 13)),
-                          ),
-                          ...controller.classList.map((c) {
-                            return DropdownMenuItem<int?>(
-                              value: c.id,
-                              child: Text(c.namaKelas, style: const TextStyle(fontSize: 13)),
-                            );
-                          }),
-                        ],
-                        onChanged: controller.filterByClass,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Mata Pelajaran
-                  Expanded(
-                    flex: 4,
-                    child: _buildDropdownWrapper(
-                      label: 'Mata Pelajaran',
-                      child: DropdownButtonFormField<int?>(
-                        value: controller.selectedSubject.value,
-                        isExpanded: true,
-                        decoration: _inputDecoration(),
-                        items: [
-                          const DropdownMenuItem(
-                            value: null,
-                            child: Text('Semua Mapel', style: TextStyle(fontSize: 13)),
-                          ),
-                          ...controller.subjectList.map((s) {
-                            return DropdownMenuItem<int?>(
-                              value: s.id,
-                              child: Text(s.namaMapel, style: const TextStyle(fontSize: 13)),
-                            );
-                          }),
-                        ],
-                        onChanged: controller.filterBySubject,
-                      ),
-                    ),
-                  ),
-                  if (controller.isAdmin.value) ...[
-                    const SizedBox(width: 12),
-                    // Guru (Admin only)
-                    Expanded(
-                      flex: 4,
-                      child: _buildDropdownWrapper(
-                        label: 'Guru Pengampu',
-                        child: DropdownButtonFormField<int?>(
-                          value: controller.selectedGuru.value,
-                          isExpanded: true,
-                          decoration: _inputDecoration(),
-                          items: [
-                            const DropdownMenuItem(
-                              value: null,
-                              child: Text('Semua Guru', style: TextStyle(fontSize: 13)),
-                            ),
-                            ...controller.guruList.map((g) {
-                              return DropdownMenuItem<int?>(
-                                value: g.id,
-                                child: Text(g.nama, style: const TextStyle(fontSize: 13)),
-                              );
-                            }),
-                          ],
-                          onChanged: controller.filterByGuru,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              )
-            else
-              Column(
-                children: [
-                  Row(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 960;
+                final isMedium = constraints.maxWidth >= 560 && !isWide;
+
+                if (isWide) {
+                  return Row(
                     children: [
-                      Expanded(
-                        child: _buildDropdownWrapper(
-                          label: 'Bulan',
-                          child: DropdownButtonFormField<int>(
-                            value: controller.selectedMonth.value,
-                            isExpanded: true,
-                            decoration: _inputDecoration(),
-                            items: controller.months.map((m) {
-                              return DropdownMenuItem<int>(
-                                value: m['val'] as int,
-                                child: Text(m['name'] as String, style: const TextStyle(fontSize: 13)),
-                              );
-                            }).toList(),
-                            onChanged: controller.filterByMonth,
-                          ),
-                        ),
+                      Expanded(flex: 2, child: _buildBulanDropdown(controller)),
+                      const SizedBox(width: 12),
+                      Expanded(flex: 2, child: _buildTahunDropdown(controller)),
+                      const SizedBox(width: 12),
+                      Expanded(flex: 3, child: _buildKelasDropdown(controller)),
+                      const SizedBox(width: 12),
+                      Expanded(flex: 4, child: _buildMapelDropdown(controller)),
+                      if (controller.isAdmin.value) ...[
+                        const SizedBox(width: 12),
+                        Expanded(flex: 4, child: _buildGuruDropdown(controller)),
+                      ],
+                    ],
+                  );
+                } else if (isMedium) {
+                  return Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(child: _buildBulanDropdown(controller)),
+                          const SizedBox(width: 12),
+                          Expanded(child: _buildTahunDropdown(controller)),
+                          const SizedBox(width: 12),
+                          Expanded(child: _buildKelasDropdown(controller)),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _buildDropdownWrapper(
-                          label: 'Tahun',
-                          child: DropdownButtonFormField<int>(
-                            value: controller.selectedYear.value,
-                            isExpanded: true,
-                            decoration: _inputDecoration(),
-                            items: controller.years.map((y) {
-                              return DropdownMenuItem<int>(
-                                value: y,
-                                child: Text('$y', style: const TextStyle(fontSize: 13)),
-                              );
-                            }).toList(),
-                            onChanged: controller.filterByYear,
-                          ),
-                        ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(child: _buildMapelDropdown(controller)),
+                          if (controller.isAdmin.value) ...[
+                            const SizedBox(width: 12),
+                            Expanded(child: _buildGuruDropdown(controller)),
+                          ],
+                        ],
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 10),
-                  _buildDropdownWrapper(
-                    label: 'Kelas',
-                    child: DropdownButtonFormField<int?>(
-                      value: controller.selectedClass.value,
-                      isExpanded: true,
-                      decoration: _inputDecoration(),
-                      items: [
-                        const DropdownMenuItem(
-                          value: null,
-                          child: Text('Semua Kelas', style: TextStyle(fontSize: 13)),
-                        ),
-                        ...controller.classList.map((c) {
-                          return DropdownMenuItem<int?>(
-                            value: c.id,
-                            child: Text(c.namaKelas, style: const TextStyle(fontSize: 13)),
-                          );
-                        }),
-                      ],
-                      onChanged: controller.filterByClass,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildDropdownWrapper(
-                    label: 'Mata Pelajaran',
-                    child: DropdownButtonFormField<int?>(
-                      value: controller.selectedSubject.value,
-                      isExpanded: true,
-                      decoration: _inputDecoration(),
-                      items: [
-                        const DropdownMenuItem(
-                          value: null,
-                          child: Text('Semua Mapel', style: TextStyle(fontSize: 13)),
-                        ),
-                        ...controller.subjectList.map((s) {
-                          return DropdownMenuItem<int?>(
-                            value: s.id,
-                            child: Text(s.namaMapel, style: const TextStyle(fontSize: 13)),
-                          );
-                        }),
-                      ],
-                      onChanged: controller.filterBySubject,
-                    ),
-                  ),
-                  if (controller.isAdmin.value) ...[
-                    const SizedBox(height: 10),
-                    _buildDropdownWrapper(
-                      label: 'Guru Pengampu',
-                      child: DropdownButtonFormField<int?>(
-                        value: controller.selectedGuru.value,
-                        isExpanded: true,
-                        decoration: _inputDecoration(),
-                        items: [
-                          const DropdownMenuItem(
-                            value: null,
-                            child: Text('Semua Guru', style: TextStyle(fontSize: 13)),
-                          ),
-                          ...controller.guruList.map((g) {
-                            return DropdownMenuItem<int?>(
-                              value: g.id,
-                              child: Text(g.nama, style: const TextStyle(fontSize: 13)),
-                            );
-                          }),
+                  );
+                } else {
+                  return Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(child: _buildBulanDropdown(controller)),
+                          const SizedBox(width: 10),
+                          Expanded(child: _buildTahunDropdown(controller)),
                         ],
-                        onChanged: controller.filterByGuru,
                       ),
-                    ),
-                  ],
-                ],
-              ),
+                      const SizedBox(height: 10),
+                      _buildKelasDropdown(controller),
+                      const SizedBox(height: 10),
+                      _buildMapelDropdown(controller),
+                      if (controller.isAdmin.value) ...[
+                        const SizedBox(height: 10),
+                        _buildGuruDropdown(controller),
+                      ],
+                    ],
+                  );
+                }
+              },
+            ),
           ],
         ),
       ),
@@ -487,30 +447,37 @@ class ReportView extends StatelessWidget {
       ),
     ];
 
-    if (isDesktop) {
-      return Row(
-        children: metrics
-            .map(
-              (m) => Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: m,
-                ),
-              ),
-            )
-            .toList(),
-      );
-    } else {
-      return GridView.count(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        childAspectRatio: 1.25,
-        children: metrics,
-      );
-    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        int crossAxisCount;
+        double childAspectRatio;
+
+        if (width >= 1100) {
+          crossAxisCount = 6;
+          childAspectRatio = 1.1;
+        } else if (width >= 800) {
+          crossAxisCount = 3;
+          childAspectRatio = 1.4;
+        } else if (width >= 500) {
+          crossAxisCount = 2;
+          childAspectRatio = 1.4;
+        } else {
+          crossAxisCount = 2;
+          childAspectRatio = 1.15;
+        }
+
+        return GridView.count(
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          childAspectRatio: childAspectRatio,
+          children: metrics,
+        );
+      },
+    );
   }
 
   Widget _buildStudentsTableCard(BuildContext context, ReportController controller, bool isDesktop) {
